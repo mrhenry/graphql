@@ -11,6 +11,7 @@ import (
 	"github.com/graphql-go/graphql/language/ast"
 )
 
+// ExecuteParams holds all information for executing a GraphQL operation
 type ExecuteParams struct {
 	Schema        Schema
 	Root          interface{}
@@ -23,7 +24,8 @@ type ExecuteParams struct {
 	Context context.Context
 }
 
-func Execute(p ExecuteParams) (result *Result) {
+// Execute a GraphQL operation
+func Execute(p ExecuteParams) *Result {
 	// Use background context if no context was provided
 	ctx := p.Context
 	if ctx == nil {
@@ -84,12 +86,10 @@ func Execute(p ExecuteParams) (result *Result) {
 
 	select {
 	case <-ctx.Done():
-		result = &Result{}
-		result.Errors = append(result.Errors, gqlerrors.FormatError(ctx.Err()))
+		return &Result{Errors: []gqlerrors.FormattedError{gqlerrors.FormatError(ctx.Err())}}
 	case r := <-resultChannel:
-		result = r
+		return r
 	}
-	return
 }
 
 type buildExecutionCtxParams struct {
@@ -602,7 +602,7 @@ func completeValueCatchingError(eCtx *executionContext, returnType Type, fieldAS
 	}()
 
 	if returnType, ok := returnType.(*NonNull); ok {
-		completed := completeValue(eCtx, returnType, fieldASTs, info, result)
+		completed = completeValue(eCtx, returnType, fieldASTs, info, result)
 		return completed
 	}
 	completed = completeValue(eCtx, returnType, fieldASTs, info, result)
@@ -753,13 +753,13 @@ func completeObjectValue(eCtx *executionContext, returnType *Object, fieldASTs [
 			subFieldASTs = collectFields(innerParams)
 		}
 	}
-	executeFieldsParams := executeFieldsParams{
+
+	results := executeFields(executeFieldsParams{
 		ExecutionContext: eCtx,
 		ParentType:       returnType,
 		Source:           result,
 		Fields:           subFieldASTs,
-	}
-	results := executeFields(executeFieldsParams)
+	})
 
 	return results.Data
 

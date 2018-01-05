@@ -7,11 +7,12 @@ import (
 	"reflect"
 	"strings"
 
+	"sort"
+
 	"github.com/graphql-go/graphql/gqlerrors"
 	"github.com/graphql-go/graphql/language/ast"
 	"github.com/graphql-go/graphql/language/kinds"
 	"github.com/graphql-go/graphql/language/printer"
-	"sort"
 )
 
 // Prepares an object map of variableValues of the correct type based on the
@@ -160,8 +161,7 @@ func coerceValue(ttype Input, value interface{}) interface{} {
 
 		obj := map[string]interface{}{}
 		for fieldName, field := range ttype.Fields() {
-			value, _ := valueMap[fieldName]
-			fieldValue := coerceValue(field.Type, value)
+			fieldValue := coerceValue(field.Type, valueMap[fieldName])
 			if isNullish(fieldValue) {
 				fieldValue = field.DefaultValue
 			}

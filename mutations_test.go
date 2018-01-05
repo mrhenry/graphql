@@ -67,9 +67,8 @@ var mutationsTestSchema, _ = graphql.NewSchema(graphql.SchemaConfig{
 					},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					newNumber := 0
 					obj, _ := p.Source.(*testRoot)
-					newNumber, _ = p.Args["newNumber"].(int)
+					newNumber, _ := p.Args["newNumber"].(int)
 					return obj.ImmediatelyChangeTheNumber(newNumber), nil
 				},
 			},
@@ -81,9 +80,8 @@ var mutationsTestSchema, _ = graphql.NewSchema(graphql.SchemaConfig{
 					},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					newNumber := 0
 					obj, _ := p.Source.(*testRoot)
-					newNumber, _ = p.Args["newNumber"].(int)
+					newNumber, _ := p.Args["newNumber"].(int)
 					return obj.PromiseToChangeTheNumber(newNumber), nil
 				},
 			},
@@ -95,9 +93,8 @@ var mutationsTestSchema, _ = graphql.NewSchema(graphql.SchemaConfig{
 					},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					newNumber := 0
 					obj, _ := p.Source.(*testRoot)
-					newNumber, _ = p.Args["newNumber"].(int)
+					newNumber, _ := p.Args["newNumber"].(int)
 					return obj.FailToChangeTheNumber(newNumber), nil
 				},
 			},
@@ -109,9 +106,8 @@ var mutationsTestSchema, _ = graphql.NewSchema(graphql.SchemaConfig{
 					},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					newNumber := 0
 					obj, _ := p.Source.(*testRoot)
-					newNumber, _ = p.Args["newNumber"].(int)
+					newNumber, _ := p.Args["newNumber"].(int)
 					return obj.PromiseAndFailToChangeTheNumber(newNumber), nil
 				},
 			},

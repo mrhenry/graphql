@@ -151,6 +151,7 @@ type Abstract interface {
 var _ Abstract = (*Interface)(nil)
 var _ Abstract = (*Union)(nil)
 
+// IsAbstractType is true when the passed type is a Abstract type.
 func IsAbstractType(ttype interface{}) bool {
 	if _, ok := ttype.(*Interface); ok {
 		return true
@@ -1308,6 +1309,7 @@ func (gl *NonNull) Error() error {
 	return gl.err
 }
 
+// NameRegExp is the required format for GraphQL fields names
 var NameRegExp, _ = regexp.Compile("^[_a-zA-Z][_a-zA-Z0-9]*$")
 
 func assertValidName(name string) error {
