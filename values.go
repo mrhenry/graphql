@@ -7,11 +7,12 @@ import (
 	"reflect"
 	"strings"
 
+	"sort"
+
 	"github.com/graphql-go/graphql/gqlerrors"
 	"github.com/graphql-go/graphql/language/ast"
 	"github.com/graphql-go/graphql/language/kinds"
 	"github.com/graphql-go/graphql/language/printer"
-	"sort"
 )
 
 // Prepares an object map of variableValues of the correct type based on the
@@ -140,7 +141,7 @@ func coerceValue(ttype Input, value interface{}) interface{} {
 		itemType := ttype.OfType
 		valType := reflect.ValueOf(value)
 		if valType.Kind() == reflect.Slice {
-			values := []interface{}{}
+			values := make([]interface{}, 0, valType.Len())
 			for i := 0; i < valType.Len(); i++ {
 				val := valType.Index(i).Interface()
 				v := coerceValue(itemType, val)
@@ -265,14 +266,13 @@ func isValidInputValue(value interface{}, ttype Input) (bool, []string) {
 		fields := ttype.Fields()
 
 		// to ensure stable order of field evaluation
-		fieldNames := []string{}
-		valueMapFieldNames := []string{}
-
+		fieldNames := make([]string, 0, len(fields))
 		for fieldName := range fields {
 			fieldNames = append(fieldNames, fieldName)
 		}
 		sort.Strings(fieldNames)
 
+		valueMapFieldNames := make([]string, 0, len(valueMap))
 		for fieldName := range valueMap {
 			valueMapFieldNames = append(valueMapFieldNames, fieldName)
 		}
@@ -400,7 +400,7 @@ func valueFromAST(valueAST ast.Value, ttype Input, variables map[string]interfac
 	if ttype, ok := ttype.(*List); ok {
 		itemType := ttype.OfType
 		if valueAST, ok := valueAST.(*ast.ListValue); ok && valueAST.Kind == kinds.ListValue {
-			values := []interface{}{}
+			values := make([]interface{}, 0, len(valueAST.Values))
 			for _, itemAST := range valueAST.Values {
 				v := valueFromAST(itemAST, itemType, variables)
 				values = append(values, v)

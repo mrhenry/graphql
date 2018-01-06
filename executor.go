@@ -790,7 +790,7 @@ func completeListValue(eCtx *ExecutionContext, returnType *List, fieldASTs []*as
 	}
 
 	itemType := returnType.OfType
-	completedResults := []interface{}{}
+	completedResults := make([]interface{}, 0, resultVal.Len())
 	for i := 0; i < resultVal.Len(); i++ {
 		val := resultVal.Index(i).Interface()
 		completedItem := completeValueCatchingError(eCtx, itemType, fieldASTs, info, val)

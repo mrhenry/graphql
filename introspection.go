@@ -414,8 +414,9 @@ func init() {
 				)),
 				Resolve: func(p ResolveParams) (interface{}, error) {
 					if schema, ok := p.Source.(Schema); ok {
-						results := []Type{}
-						for _, ttype := range schema.TypeMap() {
+						tm := schema.TypeMap()
+						results := make([]Type, 0, len(tm))
+						for _, ttype := range tm {
 							results = append(results, ttype)
 						}
 						return results, nil
@@ -518,25 +519,29 @@ func init() {
 				if ttype == nil {
 					return nil, nil
 				}
-				fields := []*FieldDefinition{}
-				var fieldNames sort.StringSlice
-				for name, field := range ttype.Fields() {
+
+				tFields := ttype.Fields()
+				fieldNames := make([]string, 0, len(tFields))
+				for name, field := range tFields {
 					if !includeDeprecated && field.DeprecationReason != "" {
 						continue
 					}
 					fieldNames = append(fieldNames, name)
 				}
-				sort.Sort(fieldNames)
+				sort.Sort(sort.StringSlice(fieldNames))
+
+				fields := make([]*FieldDefinition, 0, len(fieldNames))
 				for _, name := range fieldNames {
-					fields = append(fields, ttype.Fields()[name])
+					fields = append(fields, tFields[name])
 				}
 				return fields, nil
 			case *Interface:
 				if ttype == nil {
 					return nil, nil
 				}
-				fields := []*FieldDefinition{}
-				for _, field := range ttype.Fields() {
+				tFields := ttype.Fields()
+				fields := make([]*FieldDefinition, 0, len(tFields))
+				for _, field := range tFields {
 					if !includeDeprecated && field.DeprecationReason != "" {
 						continue
 					}
@@ -584,8 +589,9 @@ func init() {
 				if includeDeprecated {
 					return ttype.Values(), nil
 				}
-				values := []*EnumValueDefinition{}
-				for _, value := range ttype.Values() {
+				tValues := ttype.Values()
+				values := make([]*EnumValueDefinition, 0, len(tValues))
+				for _, value := range tValues {
 					if value.DeprecationReason != "" {
 						continue
 					}
@@ -601,8 +607,9 @@ func init() {
 		Resolve: func(p ResolveParams) (interface{}, error) {
 			switch ttype := p.Source.(type) {
 			case *InputObject:
-				fields := []*InputObjectField{}
-				for _, field := range ttype.Fields() {
+				tFields := ttype.Fields()
+				fields := make([]*InputObjectField, 0, len(tFields))
+				for _, field := range tFields {
 					fields = append(fields, field)
 				}
 				return fields, nil
@@ -696,7 +703,7 @@ func astFromValue(value interface{}, ttype Type) ast.Value {
 	if ttype, ok := ttype.(*List); ok {
 		if valueVal.Type().Kind() == reflect.Slice {
 			itemType := ttype.OfType
-			values := []ast.Value{}
+			values := make([]ast.Value, 0, valueVal.Len())
 			for i := 0; i < valueVal.Len(); i++ {
 				item := valueVal.Index(i).Interface()
 				itemAST := astFromValue(item, itemType)

@@ -476,7 +476,7 @@ func (gt *Object) Error() error {
 }
 
 func defineInterfaces(ttype *Object, interfaces []*Interface) ([]*Interface, error) {
-	ifaces := []*Interface{}
+	ifaces := make([]*Interface, 0, len(interfaces))
 
 	if len(interfaces) == 0 {
 		return ifaces, nil
@@ -552,7 +552,7 @@ func defineFieldMap(ttype Named, fields interface{}) (FieldDefinitionMap, error)
 			DeprecationReason: field.DeprecationReason,
 		}
 
-		fieldDef.Args = []*Argument{}
+		fieldDef.Args = make([]*Argument, 0, len(field.Args))
 		for argName, arg := range field.Args {
 			err := assertValidName(argName)
 			if err != nil {
@@ -956,7 +956,7 @@ func NewEnum(config EnumConfig) *Enum {
 	return gt
 }
 func (gt *Enum) defineEnumValues(valueMap EnumValueConfigMap) ([]*EnumValueDefinition, error) {
-	values := []*EnumValueDefinition{}
+	values := make([]*EnumValueDefinition, 0, len(valueMap))
 
 	err := invariant(
 		len(valueMap) > 0,

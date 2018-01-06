@@ -77,7 +77,7 @@ func NewDirective(config DirectiveConfig) *Directive {
 		return dir
 	}
 
-	args := []*Argument{}
+	args := make([]*Argument, 0, len(config.Args))
 
 	for argName, argConfig := range config.Args {
 		err := assertValidName(argName)

@@ -165,7 +165,7 @@ func DefaultValuesOfCorrectTypeRule(context *ValidationContext) *ValidationRuleI
 	}
 }
 func quoteStrings(slice []string) []string {
-	quoted := []string{}
+	quoted := make([]string, 0, len(slice))
 	for _, s := range slice {
 		quoted = append(quoted, fmt.Sprintf(`"%v"`, s))
 	}
