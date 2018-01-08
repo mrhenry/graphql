@@ -15,94 +15,124 @@ import (
 // n.b. JavaScript's integers are safe between -(2^53 - 1) and 2^53 - 1 because
 // they are internally represented as IEEE 754 doubles.
 func coerceInt(value interface{}) interface{} {
+	var (
+		i int64
+		r float64
+	)
+
 	switch value := value.(type) {
+
 	case bool:
 		if value == true {
-			return 1
+			i = 1
+		} else {
+			i = 0
 		}
-		return 0
+	case *bool:
+		if *value == true {
+			i = 1
+		} else {
+			i = 0
+		}
+
 	case int:
-		if value < int(math.MinInt32) || value > int(math.MaxInt32) {
-			return nil
-		}
-		return value
+		i = int64(value)
 	case *int:
-		return coerceInt(*value)
+		i = int64(*value)
+
 	case int8:
-		return int(value)
+		i = int64(value)
 	case *int8:
-		return int(*value)
+		i = int64(*value)
+
 	case int16:
-		return int(value)
+		i = int64(value)
 	case *int16:
-		return int(*value)
+		i = int64(*value)
+
 	case int32:
-		return int(value)
+		i = int64(value)
 	case *int32:
-		return int(*value)
+		i = int64(*value)
+
 	case int64:
-		if value < int64(math.MinInt32) || value > int64(math.MaxInt32) {
-			return nil
-		}
-		return int(value)
+		i = int64(value)
 	case *int64:
-		return coerceInt(*value)
+		i = int64(*value)
+
 	case uint:
-		if value > math.MaxInt32 {
-			return nil
-		}
-		return int(value)
+		r = float64(value)
+		i = int64(value)
 	case *uint:
-		return coerceInt(*value)
+		r = float64(*value)
+		i = int64(*value)
+
 	case uint8:
-		return int(value)
+		i = int64(value)
 	case *uint8:
-		return int(*value)
+		i = int64(*value)
+
 	case uint16:
-		return int(value)
+		i = int64(value)
 	case *uint16:
-		return int(*value)
+		i = int64(*value)
+
 	case uint32:
-		if value > uint32(math.MaxInt32) {
-			return nil
-		}
-		return int(value)
+		i = int64(value)
 	case *uint32:
-		return coerceInt(*value)
+		i = int64(*value)
+
 	case uint64:
-		if value > uint64(math.MaxInt32) {
-			return nil
-		}
-		return int(value)
+		r = float64(value)
+		i = int64(value)
 	case *uint64:
-		return coerceInt(*value)
+		r = float64(*value)
+		i = int64(*value)
+
 	case float32:
-		if value < float32(math.MinInt32) || value > float32(math.MaxInt32) {
-			return nil
-		}
-		return int(value)
+		r = float64(value)
+		i = int64(value)
 	case *float32:
-		return coerceInt(*value)
+		r = float64(*value)
+		i = int64(*value)
+
 	case float64:
-		if value < float64(math.MinInt32) || value > float64(math.MaxInt32) {
-			return nil
-		}
-		return int(value)
+		r = float64(value)
+		i = int64(value)
 	case *float64:
-		return coerceInt(*value)
+		r = float64(*value)
+		i = int64(*value)
+
 	case string:
 		val, err := strconv.ParseFloat(value, 0)
 		if err != nil {
 			return nil
 		}
-		return coerceInt(val)
+		r = float64(val)
+		i = int64(val)
 	case *string:
-		return coerceInt(*value)
+		val, err := strconv.ParseFloat(*value, 0)
+		if err != nil {
+			return nil
+		}
+		r = float64(val)
+		i = int64(val)
+
+	default:
+		// If the value cannot be transformed into an int, return nil instead of '0'
+		// to denote 'no integer found'
+		return nil
 	}
 
-	// If the value cannot be transformed into an int, return nil instead of '0'
-	// to denote 'no integer found'
-	return nil
+	// If the value is out of range, return nil instead of '0'
+	if r < math.MinInt32 || r > math.MaxInt32 {
+		return nil
+	}
+	if i < math.MinInt32 || i > math.MaxInt32 {
+		return nil
+	}
+
+	return int(i)
 }
 
 // Int is the GraphQL Integer type definition.
@@ -124,36 +154,102 @@ var Int = NewScalar(ScalarConfig{
 })
 
 func coerceFloat(value interface{}) interface{} {
+	var f float64
+
 	switch value := value.(type) {
+
 	case bool:
 		if value == true {
-			return 1.0
+			f = 1.0
+		} else {
+			f = 0.0
 		}
-		return 0.0
 	case *bool:
-		return coerceFloat(*value)
+		if *value == true {
+			f = 1.0
+		} else {
+			f = 0.0
+		}
+
 	case int:
-		return float64(value)
+		f = float64(value)
+	case *int:
+		f = float64(*value)
+
+	case int8:
+		f = float64(value)
+	case *int8:
+		f = float64(*value)
+
+	case int16:
+		f = float64(value)
+	case *int16:
+		f = float64(*value)
+
+	case int32:
+		f = float64(value)
 	case *int32:
-		return coerceFloat(*value)
+		f = float64(*value)
+
+	case int64:
+		f = float64(value)
+	case *int64:
+		f = float64(*value)
+
+	case uint:
+		f = float64(value)
+	case *uint:
+		f = float64(*value)
+
+	case uint8:
+		f = float64(value)
+	case *uint8:
+		f = float64(*value)
+
+	case uint16:
+		f = float64(value)
+	case *uint16:
+		f = float64(*value)
+
+	case uint32:
+		f = float64(value)
+	case *uint32:
+		f = float64(*value)
+
+	case uint64:
+		f = float64(value)
+	case *uint64:
+		f = float64(*value)
+
+		// retain precision
 	case float32:
 		return value
 	case *float32:
-		return coerceFloat(*value)
+		return *value
+
 	case float64:
-		return value
+		f = float64(value)
 	case *float64:
-		return coerceFloat(*value)
+		f = float64(*value)
+
 	case string:
 		val, err := strconv.ParseFloat(value, 0)
 		if err != nil {
 			return nil
+		} else {
+			f = float64(val)
 		}
-		return val
 	case *string:
-		return coerceFloat(*value)
+		val, err := strconv.ParseFloat(*value, 0)
+		if err != nil {
+			return nil
+		} else {
+			f = float64(val)
+		}
+
 	}
-	return 0.0
+
+	return f
 }
 
 // Float is the GraphQL float type definition.
@@ -180,9 +276,17 @@ var Float = NewScalar(ScalarConfig{
 })
 
 func coerceString(value interface{}) interface{} {
-	if v, ok := value.(*string); ok {
-		return *v
+	switch value := value.(type) {
+	case string:
+		return value
+	case *string:
+		return *value
 	}
+
+	if v, ok := value.(fmt.Stringer); ok {
+		return v.String()
+	}
+
 	return fmt.Sprintf("%v", value)
 }
 

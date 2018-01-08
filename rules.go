@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/graphql-go/graphql/gqlerrors"
@@ -71,31 +72,38 @@ func ArgumentsOfCorrectTypeRule(context *ValidationContext) *ValidationRuleInsta
 		KindFuncMap: map[string]visitor.NamedVisitFuncs{
 			kinds.Argument: {
 				Kind: func(p visitor.VisitFuncParams) (string, interface{}) {
-					if argAST, ok := p.Node.(*ast.Argument); ok {
-						value := argAST.Value
-						argDef := context.Argument()
-						if argDef != nil {
-							isValid, messages := isValidLiteralValue(argDef.Type, value)
-							if !isValid {
-								argNameValue := ""
-								if argAST.Name != nil {
-									argNameValue = argAST.Name.Value
-								}
-
-								messagesStr := ""
-								if len(messages) > 0 {
-									messagesStr = "\n" + strings.Join(messages, "\n")
-								}
-								reportError(
-									context,
-									fmt.Sprintf(`Argument "%v" has invalid value %v.%v`,
-										argNameValue, printer.Print(value), messagesStr),
-									[]ast.Node{value},
-								)
-							}
-
-						}
+					argAST, ok := p.Node.(*ast.Argument)
+					if !ok {
+						return visitor.ActionSkip, nil
 					}
+
+					value := argAST.Value
+					argDef := context.Argument()
+					if argDef == nil {
+						return visitor.ActionSkip, nil
+					}
+
+					isValid, messages := isValidLiteralValue(argDef.Type, value)
+					if isValid {
+						return visitor.ActionSkip, nil
+					}
+
+					argNameValue := ""
+					if argAST.Name != nil {
+						argNameValue = argAST.Name.Value
+					}
+
+					messagesStr := ""
+					if len(messages) > 0 {
+						messagesStr = "\n" + strings.Join(messages, "\n")
+					}
+					reportError(
+						context,
+						fmt.Sprintf(`Argument "%v" has invalid value %v.%v`,
+							argNameValue, printer.Print(value), messagesStr),
+						[]ast.Node{value},
+					)
+
 					return visitor.ActionSkip, nil
 				},
 			},
@@ -165,9 +173,9 @@ func DefaultValuesOfCorrectTypeRule(context *ValidationContext) *ValidationRuleI
 	}
 }
 func quoteStrings(slice []string) []string {
-	quoted := []string{}
+	quoted := make([]string, 0, len(slice))
 	for _, s := range slice {
-		quoted = append(quoted, fmt.Sprintf(`"%v"`, s))
+		quoted = append(quoted, strconv.Quote(s))
 	}
 	return quoted
 }
@@ -319,7 +327,6 @@ func getSuggestedTypeNames(schema *Schema, ttype Output, fieldName string) []str
 	for _, s := range suggestedInterfaces {
 		if _, ok := suggestedObjectMap[s.name]; !ok {
 			results = append(results, s.name)
-
 		}
 	}
 	results = append(results, suggestedObjectTypes...)
@@ -340,7 +347,7 @@ func getSuggestedFieldNames(schema *Schema, ttype Output, fieldName string) []st
 		return []string{}
 	}
 
-	possibleFieldNames := []string{}
+	possibleFieldNames := make([]string, 0, len(fields))
 	for possibleFieldName := range fields {
 		possibleFieldNames = append(possibleFieldNames, possibleFieldName)
 	}
@@ -377,16 +384,20 @@ func FragmentsOnCompositeTypesRule(context *ValidationContext) *ValidationRuleIn
 		KindFuncMap: map[string]visitor.NamedVisitFuncs{
 			kinds.InlineFragment: {
 				Kind: func(p visitor.VisitFuncParams) (string, interface{}) {
-					if node, ok := p.Node.(*ast.InlineFragment); ok {
-						ttype := context.Type()
-						if node.TypeCondition != nil && ttype != nil && !IsCompositeType(ttype) {
-							reportError(
-								context,
-								fmt.Sprintf(`Fragment cannot condition on non composite type "%v".`, ttype),
-								[]ast.Node{node.TypeCondition},
-							)
-						}
+					node, ok := p.Node.(*ast.InlineFragment)
+					if !ok {
+						return visitor.ActionNoChange, nil
 					}
+
+					ttype := context.Type()
+					if node.TypeCondition != nil && ttype != nil && !IsCompositeType(ttype) {
+						reportError(
+							context,
+							fmt.Sprintf(`Fragment cannot condition on non composite type "%v".`, ttype),
+							[]ast.Node{node.TypeCondition},
+						)
+					}
+
 					return visitor.ActionNoChange, nil
 				},
 			},

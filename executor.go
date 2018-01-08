@@ -279,7 +279,7 @@ func executeFields(p executeFieldsParams) *Result {
 		p.Fields = map[string][]*ast.Field{}
 	}
 
-	finalResults := map[string]interface{}{}
+	finalResults := make(map[string]interface{}, len(p.Fields))
 	for responseName, fieldASTs := range p.Fields {
 		resolved, state := resolveField(p.ExecutionContext, p.ParentType, p.Source, fieldASTs)
 		if state.hasNoFieldDefs {
@@ -753,13 +753,13 @@ func completeObjectValue(eCtx *executionContext, returnType *Object, fieldASTs [
 			subFieldASTs = collectFields(innerParams)
 		}
 	}
-	executeFieldsParams := executeFieldsParams{
+
+	results := executeFields(executeFieldsParams{
 		ExecutionContext: eCtx,
 		ParentType:       returnType,
 		Source:           result,
 		Fields:           subFieldASTs,
-	}
-	results := executeFields(executeFieldsParams)
+	})
 
 	return results.Data
 
@@ -790,9 +790,10 @@ func completeListValue(eCtx *executionContext, returnType *List, fieldASTs []*as
 		panic(gqlerrors.FormatError(err))
 	}
 
+	length := resultVal.Len()
 	itemType := returnType.OfType
-	completedResults := []interface{}{}
-	for i := 0; i < resultVal.Len(); i++ {
+	completedResults := make([]interface{}, 0, length)
+	for i := 0; i < length; i++ {
 		val := resultVal.Index(i).Interface()
 		completedItem := completeValueCatchingError(eCtx, itemType, fieldASTs, info, val)
 		completedResults = append(completedResults, completedItem)

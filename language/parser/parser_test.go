@@ -43,8 +43,7 @@ func TestAcceptsOptionToNotIncludeSource(t *testing.T) {
 		Loc: &ast.Location{
 			Start: 0, End: 9,
 		},
-		Operation:  "query",
-		Directives: []*ast.Directive{},
+		Operation: "query",
 		SelectionSet: &ast.SelectionSet{
 			Kind: "SelectionSet",
 			Loc: &ast.Location{
@@ -63,8 +62,6 @@ func TestAcceptsOptionToNotIncludeSource(t *testing.T) {
 						},
 						Value: "field",
 					},
-					Arguments:  []*ast.Argument{},
-					Directives: []*ast.Directive{},
 				},
 			},
 		},
@@ -638,7 +635,7 @@ func TestParseCreatesAst(t *testing.T) {
 			Start: 0, End: 40,
 		},
 		Operation:  "query",
-		Directives: []*ast.Directive{},
+		Directives: nil,
 		SelectionSet: &ast.SelectionSet{
 			Kind: "SelectionSet",
 			Loc: &ast.Location{
@@ -679,7 +676,6 @@ func TestParseCreatesAst(t *testing.T) {
 							},
 						},
 					},
-					Directives: []*ast.Directive{},
 					SelectionSet: &ast.SelectionSet{
 						Kind: "SelectionSet",
 						Loc: &ast.Location{
@@ -698,9 +694,6 @@ func TestParseCreatesAst(t *testing.T) {
 									},
 									Value: "id",
 								},
-								Arguments:    []*ast.Argument{},
-								Directives:   []*ast.Directive{},
-								SelectionSet: nil,
 							},
 							&ast.Field{
 								Kind: "Field",
@@ -714,9 +707,6 @@ func TestParseCreatesAst(t *testing.T) {
 									},
 									Value: "name",
 								},
-								Arguments:    []*ast.Argument{},
-								Directives:   []*ast.Directive{},
-								SelectionSet: nil,
 							},
 						},
 					},

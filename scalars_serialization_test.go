@@ -85,17 +85,32 @@ func TestTypeSystem_Scalar_SerializesOutputInt(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		val := graphql.Int.Serialize(test.Value)
-		if val != test.Expected {
-			reflectedTestValue := reflect.ValueOf(test.Value)
-			reflectedExpectedValue := reflect.ValueOf(test.Expected)
-			reflectedValue := reflect.ValueOf(val)
-			t.Fatalf("Failed test #%d - Int.Serialize(%v(%v)), expected: %v(%v), got %v(%v)",
-				i, reflectedTestValue.Type(), test.Value,
-				reflectedExpectedValue.Type(), test.Expected,
-				reflectedValue.Type(), val,
+		rv := reflect.ValueOf(test.Value)
+		rp := reflect.New(rv.Type())
+		rp.Elem().Set(rv)
+
+		// test basic
+		val := graphql.Int.Serialize(rv.Interface())
+		if !reflect.DeepEqual(val, test.Expected) {
+			t.Fatalf("Failed test #%d - Int.Serialize(%T(%v)), expected: %T(%v), got %T(%v)",
+				i,
+				test.Value, test.Value,
+				test.Expected, test.Expected,
+				val, val,
 			)
 		}
+
+		// test pointer
+		val = graphql.Int.Serialize(rp.Interface())
+		if !reflect.DeepEqual(val, test.Expected) {
+			t.Fatalf("Failed test #%d - Int.Serialize(*%T(%v)), expected: %T(%v), got %T(%v)",
+				i,
+				test.Value, test.Value,
+				test.Expected, test.Expected,
+				val, val,
+			)
+		}
+
 	}
 }
 
@@ -117,15 +132,27 @@ func TestTypeSystem_Scalar_SerializesOutputFloat(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		val := graphql.Float.Serialize(test.Value)
-		if val != test.Expected {
-			reflectedTestValue := reflect.ValueOf(test.Value)
-			reflectedExpectedValue := reflect.ValueOf(test.Expected)
-			reflectedValue := reflect.ValueOf(val)
-			t.Fatalf("Failed test #%d - Float.Serialize(%v(%v)), expected: %v(%v), got %v(%v)",
-				i, reflectedTestValue.Type(), test.Value,
-				reflectedExpectedValue.Type(), test.Expected,
-				reflectedValue.Type(), val,
+		rv := reflect.ValueOf(test.Value)
+		rp := reflect.New(rv.Type())
+		rp.Elem().Set(rv)
+
+		val := graphql.Float.Serialize(rv.Interface())
+		if !reflect.DeepEqual(val, test.Expected) {
+			t.Fatalf("Failed test #%d - Float.Serialize(%T(%v)), expected: %T(%v), got %T(%v)",
+				i,
+				test.Value, test.Value,
+				test.Expected, test.Expected,
+				val, val,
+			)
+		}
+
+		val = graphql.Float.Serialize(rp.Interface())
+		if !reflect.DeepEqual(val, test.Expected) {
+			t.Fatalf("Failed test #%d - Float.Serialize(*%T(%v)), expected: %T(%v), got %T(%v)",
+				i,
+				test.Value, test.Value,
+				test.Expected, test.Expected,
+				val, val,
 			)
 		}
 	}

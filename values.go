@@ -7,18 +7,19 @@ import (
 	"reflect"
 	"strings"
 
+	"sort"
+
 	"github.com/graphql-go/graphql/gqlerrors"
 	"github.com/graphql-go/graphql/language/ast"
 	"github.com/graphql-go/graphql/language/kinds"
 	"github.com/graphql-go/graphql/language/printer"
-	"sort"
 )
 
 // Prepares an object map of variableValues of the correct type based on the
 // provided variable definitions and arbitrary input. If the input cannot be
 // parsed to match the variable definitions, a GraphQLError will be returned.
 func getVariableValues(schema Schema, definitionASTs []*ast.VariableDefinition, inputs map[string]interface{}) (map[string]interface{}, error) {
-	values := map[string]interface{}{}
+	values := make(map[string]interface{}, len(definitionASTs))
 	for _, defAST := range definitionASTs {
 		if defAST == nil || defAST.Variable == nil || defAST.Variable.Name == nil {
 			continue
@@ -37,13 +38,13 @@ func getVariableValues(schema Schema, definitionASTs []*ast.VariableDefinition, 
 // definitions and list of argument AST nodes.
 func getArgumentValues(argDefs []*Argument, argASTs []*ast.Argument, variableVariables map[string]interface{}) (map[string]interface{}, error) {
 
-	argASTMap := map[string]*ast.Argument{}
+	argASTMap := make(map[string]*ast.Argument, len(argASTs))
 	for _, argAST := range argASTs {
 		if argAST.Name != nil {
 			argASTMap[argAST.Name.Value] = argAST
 		}
 	}
-	results := map[string]interface{}{}
+	results := make(map[string]interface{}, len(argDefs))
 	for _, argDef := range argDefs {
 
 		name := argDef.PrivateName
@@ -158,8 +159,9 @@ func coerceValue(ttype Input, value interface{}) interface{} {
 			valueMap = map[string]interface{}{}
 		}
 
-		obj := map[string]interface{}{}
-		for fieldName, field := range ttype.Fields() {
+		tfields := ttype.Fields()
+		obj := make(map[string]interface{}, len(tfields))
+		for fieldName, field := range tfields {
 			value, _ := valueMap[fieldName]
 			fieldValue := coerceValue(field.Type, value)
 			if isNullish(fieldValue) {
@@ -243,7 +245,7 @@ func isValidInputValue(value interface{}, ttype Input) (bool, []string) {
 			valType = valType.Elem()
 		}
 		if valType.Kind() == reflect.Slice {
-			messagesReduce := []string{}
+			messagesReduce := make([]string, 0, valType.Len())
 			for i := 0; i < valType.Len(); i++ {
 				val := valType.Index(i).Interface()
 				_, messages := isValidInputValue(val, itemType)

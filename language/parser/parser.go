@@ -114,7 +114,7 @@ func parseDocument(parser *Parser) (*ast.Document, error) {
 			if err != nil {
 				return nil, err
 			}
-			nodes = append(nodes, node)
+			nodes = appendNode(nodes, node)
 		} else if peek(parser, lexer.TokenKind[lexer.NAME]) {
 			switch parser.Token.Value {
 			case "query":
@@ -126,13 +126,13 @@ func parseDocument(parser *Parser) (*ast.Document, error) {
 				if err != nil {
 					return nil, err
 				}
-				nodes = append(nodes, node)
+				nodes = appendNode(nodes, node)
 			case "fragment":
 				node, err := parseFragmentDefinition(parser)
 				if err != nil {
 					return nil, err
 				}
-				nodes = append(nodes, node)
+				nodes = appendNode(nodes, node)
 
 			// Note: the Type System IDL is an experimental non-spec addition.
 			case "schema":
@@ -156,7 +156,7 @@ func parseDocument(parser *Parser) (*ast.Document, error) {
 				if err != nil {
 					return nil, err
 				}
-				nodes = append(nodes, node)
+				nodes = appendNode(nodes, node)
 			default:
 				if err := unexpected(parser, lexer.Token{}); err != nil {
 					return nil, err
@@ -167,7 +167,7 @@ func parseDocument(parser *Parser) (*ast.Document, error) {
 			if err != nil {
 				return nil, err
 			}
-			nodes = append(nodes, node)
+			nodes = appendNode(nodes, node)
 		} else {
 			if err := unexpected(parser, lexer.Token{}); err != nil {
 				return nil, err
@@ -196,7 +196,6 @@ func parseOperationDefinition(parser *Parser) (*ast.OperationDefinition, error) 
 		}
 		return ast.NewOperationDefinition(&ast.OperationDefinition{
 			Operation:    ast.OperationTypeQuery,
-			Directives:   []*ast.Directive{},
 			SelectionSet: selectionSet,
 			Loc:          loc(parser, start),
 		}), nil
@@ -256,19 +255,23 @@ func parseOperationType(parser *Parser) (string, error) {
  * VariableDefinitions : ( VariableDefinition+ )
  */
 func parseVariableDefinitions(parser *Parser) ([]*ast.VariableDefinition, error) {
-	variableDefinitions := []*ast.VariableDefinition{}
-	if peek(parser, lexer.TokenKind[lexer.PAREN_L]) {
-		vdefs, err := many(parser, lexer.TokenKind[lexer.PAREN_L], parseVariableDefinition, lexer.TokenKind[lexer.PAREN_R])
-		for _, vdef := range vdefs {
-			if vdef != nil {
-				variableDefinitions = append(variableDefinitions, vdef.(*ast.VariableDefinition))
-			}
-		}
-		if err != nil {
-			return variableDefinitions, err
-		}
-		return variableDefinitions, nil
+
+	if !peek(parser, lexer.TokenKind[lexer.PAREN_L]) {
+		return nil, nil
 	}
+
+	vdefs, err := many(parser, lexer.TokenKind[lexer.PAREN_L], parseVariableDefinition, lexer.TokenKind[lexer.PAREN_R])
+	if err != nil {
+		return nil, err
+	}
+
+	variableDefinitions := make([]*ast.VariableDefinition, 0, len(vdefs))
+	for _, vdef := range vdefs {
+		if vdef != nil {
+			variableDefinitions = append(variableDefinitions, vdef.(*ast.VariableDefinition))
+		}
+	}
+
 	return variableDefinitions, nil
 }
 
@@ -335,11 +338,11 @@ func parseSelectionSet(parser *Parser) (*ast.SelectionSet, error) {
 	if err != nil {
 		return nil, err
 	}
-	selections := []ast.Selection{}
+	var selections = make([]ast.Selection, 0, len(iSelections))
 	for _, iSelection := range iSelections {
 		if iSelection != nil {
 			// type assert interface{} into Selection interface
-			selections = append(selections, iSelection.(ast.Selection))
+			selections = appendSelection(selections, iSelection.(ast.Selection))
 		}
 	}
 
@@ -420,19 +423,23 @@ func parseField(parser *Parser) (*ast.Field, error) {
  * Arguments : ( Argument+ )
  */
 func parseArguments(parser *Parser) ([]*ast.Argument, error) {
-	arguments := []*ast.Argument{}
-	if peek(parser, lexer.TokenKind[lexer.PAREN_L]) {
-		iArguments, err := many(parser, lexer.TokenKind[lexer.PAREN_L], parseArgument, lexer.TokenKind[lexer.PAREN_R])
-		if err != nil {
-			return arguments, err
-		}
-		for _, iArgument := range iArguments {
-			if iArgument != nil {
-				arguments = append(arguments, iArgument.(*ast.Argument))
-			}
-		}
-		return arguments, nil
+
+	if !peek(parser, lexer.TokenKind[lexer.PAREN_L]) {
+		return nil, nil
 	}
+
+	iArguments, err := many(parser, lexer.TokenKind[lexer.PAREN_L], parseArgument, lexer.TokenKind[lexer.PAREN_R])
+	if err != nil {
+		return nil, err
+	}
+
+	var arguments = make([]*ast.Argument, 0, len(iArguments))
+	for _, iArgument := range iArguments {
+		if iArgument != nil {
+			arguments = appendArgument(arguments, iArgument.(*ast.Argument))
+		}
+	}
+
 	return arguments, nil
 }
 
@@ -675,7 +682,7 @@ func parseList(parser *Parser, isConst bool) (*ast.ListValue, error) {
 	if err != nil {
 		return nil, err
 	}
-	values := []ast.Value{}
+	values := make([]ast.Value, 0, len(iValues))
 	for _, iValue := range iValues {
 		values = append(values, iValue.(ast.Value))
 	}
@@ -696,7 +703,7 @@ func parseObject(parser *Parser, isConst bool) (*ast.ObjectValue, error) {
 	if err != nil {
 		return nil, err
 	}
-	fields := []*ast.ObjectField{}
+	var fields []*ast.ObjectField
 	for {
 		if skp, err := skip(parser, lexer.TokenKind[lexer.BRACE_R]); err != nil {
 			return nil, err
@@ -707,7 +714,7 @@ func parseObject(parser *Parser, isConst bool) (*ast.ObjectValue, error) {
 		if err != nil {
 			return nil, err
 		}
-		fields = append(fields, field)
+		fields = appendObjectField(fields, field)
 	}
 	return ast.NewObjectValue(&ast.ObjectValue{
 		Fields: fields,
@@ -745,7 +752,7 @@ func parseObjectField(parser *Parser, isConst bool) (*ast.ObjectField, error) {
  * Directives : Directive+
  */
 func parseDirectives(parser *Parser) ([]*ast.Directive, error) {
-	directives := []*ast.Directive{}
+	var directives []*ast.Directive
 	for {
 		if !peek(parser, lexer.TokenKind[lexer.AT]) {
 			break
@@ -754,7 +761,7 @@ func parseDirectives(parser *Parser) ([]*ast.Directive, error) {
 		if err != nil {
 			return directives, err
 		}
-		directives = append(directives, directive)
+		directives = appendDirective(directives, directive)
 	}
 	return directives, nil
 }
@@ -923,7 +930,7 @@ func parseSchemaDefinition(parser *Parser) (*ast.SchemaDefinition, error) {
 	if err != nil {
 		return nil, err
 	}
-	operationTypes := []*ast.OperationTypeDefinition{}
+	operationTypes := make([]*ast.OperationTypeDefinition, 0, len(operationTypesI))
 	for _, op := range operationTypesI {
 		if op, ok := op.(*ast.OperationTypeDefinition); ok {
 			operationTypes = append(operationTypes, op)
@@ -1018,7 +1025,7 @@ func parseObjectTypeDefinition(parser *Parser) (*ast.ObjectDefinition, error) {
 	if err != nil {
 		return nil, err
 	}
-	fields := []*ast.FieldDefinition{}
+	fields := make([]*ast.FieldDefinition, 0, len(iFields))
 	for _, iField := range iFields {
 		if iField != nil {
 			fields = append(fields, iField.(*ast.FieldDefinition))
@@ -1038,7 +1045,7 @@ func parseObjectTypeDefinition(parser *Parser) (*ast.ObjectDefinition, error) {
  * ImplementsInterfaces : implements NamedType+
  */
 func parseImplementsInterfaces(parser *Parser) ([]*ast.Named, error) {
-	types := []*ast.Named{}
+	var types []*ast.Named
 	if parser.Token.Value == "implements" {
 		if err := advance(parser); err != nil {
 			return nil, err
@@ -1048,7 +1055,7 @@ func parseImplementsInterfaces(parser *Parser) ([]*ast.Named, error) {
 			if err != nil {
 				return types, err
 			}
-			types = append(types, ttype)
+			types = appendNamed(types, ttype)
 			if !peek(parser, lexer.TokenKind[lexer.NAME]) {
 				break
 			}
@@ -1191,7 +1198,7 @@ func parseInterfaceTypeDefinition(parser *Parser) (*ast.InterfaceDefinition, err
 	if err != nil {
 		return nil, err
 	}
-	fields := []*ast.FieldDefinition{}
+	fields := make([]*ast.FieldDefinition, 0, len(iFields))
 	for _, iField := range iFields {
 		if iField != nil {
 			fields = append(fields, iField.(*ast.FieldDefinition))
@@ -1250,13 +1257,13 @@ func parseUnionTypeDefinition(parser *Parser) (*ast.UnionDefinition, error) {
  *   - UnionMembers | NamedType
  */
 func parseUnionMembers(parser *Parser) ([]*ast.Named, error) {
-	members := []*ast.Named{}
+	var members []*ast.Named
 	for {
 		member, err := parseNamed(parser)
 		if err != nil {
 			return members, err
 		}
-		members = append(members, member)
+		members = appendNamed(members, member)
 		if skp, err := skip(parser, lexer.TokenKind[lexer.PIPE]); err != nil {
 			return nil, err
 		} else if !skp {
@@ -1291,7 +1298,7 @@ func parseEnumTypeDefinition(parser *Parser) (*ast.EnumDefinition, error) {
 	if err != nil {
 		return nil, err
 	}
-	values := []*ast.EnumValueDefinition{}
+	values := make([]*ast.EnumValueDefinition, 0, len(iEnumValueDefs))
 	for _, iEnumValueDef := range iEnumValueDefs {
 		if iEnumValueDef != nil {
 			values = append(values, iEnumValueDef.(*ast.EnumValueDefinition))
@@ -1359,7 +1366,7 @@ func parseInputObjectTypeDefinition(parser *Parser) (*ast.InputObjectDefinition,
 	if err != nil {
 		return nil, err
 	}
-	fields := []*ast.InputValueDefinition{}
+	fields := make([]*ast.InputValueDefinition, 0, len(iInputValueDefinitions))
 	for _, iInputValueDefinition := range iInputValueDefinitions {
 		if iInputValueDefinition != nil {
 			fields = append(fields, iInputValueDefinition.(*ast.InputValueDefinition))
@@ -1450,7 +1457,7 @@ func parseDirectiveLocations(parser *Parser) ([]*ast.Name, error) {
 		if err != nil {
 			return locations, err
 		}
-		locations = append(locations, name)
+		locations = appendName(locations, name)
 
 		hasPipe, err := skip(parser, lexer.TokenKind[lexer.PIPE])
 		if err != nil {
@@ -1600,7 +1607,7 @@ func any(parser *Parser, openKind int, parseFn parseFn, closeKind int) ([]interf
 		if err != nil {
 			return nodes, err
 		}
-		nodes = append(nodes, n)
+		nodes = appendInterface(nodes, n)
 	}
 	return nodes, nil
 }
@@ -1619,7 +1626,7 @@ func many(parser *Parser, openKind int, parseFn parseFn, closeKind int) ([]inter
 	if err != nil {
 		return nodes, err
 	}
-	nodes = append(nodes, node)
+	nodes = appendInterface(nodes, node)
 	for {
 		if skp, err := skip(parser, closeKind); err != nil {
 			return nil, err
@@ -1630,7 +1637,111 @@ func many(parser *Parser, openKind int, parseFn parseFn, closeKind int) ([]inter
 		if err != nil {
 			return nodes, err
 		}
-		nodes = append(nodes, node)
+		nodes = appendInterface(nodes, node)
 	}
 	return nodes, nil
+}
+
+func appendInterface(s []interface{}, n interface{}) []interface{} {
+	if c, l := cap(s), len(s); c == l {
+		c = 2 * c
+		if c < 4 {
+			c = 4
+		}
+		t := make([]interface{}, l, c)
+		copy(t, s)
+		s = t
+	}
+	return append(s, n)
+}
+
+func appendNode(s []ast.Node, n ast.Node) []ast.Node {
+	if c, l := cap(s), len(s); c == l {
+		c = 2 * c
+		if c < 4 {
+			c = 4
+		}
+		t := make([]ast.Node, l, c)
+		copy(t, s)
+		s = t
+	}
+	return append(s, n)
+}
+
+func appendName(s []*ast.Name, n *ast.Name) []*ast.Name {
+	if c, l := cap(s), len(s); c == l {
+		c = 2 * c
+		if c < 4 {
+			c = 4
+		}
+		t := make([]*ast.Name, l, c)
+		copy(t, s)
+		s = t
+	}
+	return append(s, n)
+}
+
+func appendNamed(s []*ast.Named, n *ast.Named) []*ast.Named {
+	if c, l := cap(s), len(s); c == l {
+		c = 2 * c
+		if c < 4 {
+			c = 4
+		}
+		t := make([]*ast.Named, l, c)
+		copy(t, s)
+		s = t
+	}
+	return append(s, n)
+}
+
+func appendDirective(s []*ast.Directive, n *ast.Directive) []*ast.Directive {
+	if c, l := cap(s), len(s); c == l {
+		c = 2 * c
+		if c < 4 {
+			c = 4
+		}
+		t := make([]*ast.Directive, l, c)
+		copy(t, s)
+		s = t
+	}
+	return append(s, n)
+}
+
+func appendObjectField(s []*ast.ObjectField, n *ast.ObjectField) []*ast.ObjectField {
+	if c, l := cap(s), len(s); c == l {
+		c = 2 * c
+		if c < 4 {
+			c = 4
+		}
+		t := make([]*ast.ObjectField, l, c)
+		copy(t, s)
+		s = t
+	}
+	return append(s, n)
+}
+
+func appendArgument(s []*ast.Argument, n *ast.Argument) []*ast.Argument {
+	if c, l := cap(s), len(s); c == l {
+		c = 2 * c
+		if c < 4 {
+			c = 4
+		}
+		t := make([]*ast.Argument, l, c)
+		copy(t, s)
+		s = t
+	}
+	return append(s, n)
+}
+
+func appendSelection(s []ast.Selection, n ast.Selection) []ast.Selection {
+	if c, l := cap(s), len(s); c == l {
+		c = 2 * c
+		if c < 4 {
+			c = 4
+		}
+		t := make([]ast.Selection, l, c)
+		copy(t, s)
+		s = t
+	}
+	return append(s, n)
 }
