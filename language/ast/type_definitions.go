@@ -41,7 +41,7 @@ var _ TypeSystemDefinition = (*DirectiveDefinition)(nil)
 // SchemaDefinition implements Node, Definition
 type SchemaDefinition struct {
 	Kind           string
-	Loc            *Location
+	Loc            Location
 	Directives     []*Directive
 	OperationTypes []*OperationTypeDefinition
 }
@@ -63,7 +63,7 @@ func (def *SchemaDefinition) GetKind() string {
 }
 
 func (def *SchemaDefinition) GetLoc() *Location {
-	return def.Loc
+	return &def.Loc
 }
 
 func (def *SchemaDefinition) GetVariableDefinitions() []*VariableDefinition {
@@ -81,7 +81,7 @@ func (def *SchemaDefinition) GetOperation() string {
 // OperationTypeDefinition implements Node, Definition
 type OperationTypeDefinition struct {
 	Kind      string
-	Loc       *Location
+	Loc       Location
 	Operation string
 	Type      *Named
 }
@@ -103,13 +103,13 @@ func (def *OperationTypeDefinition) GetKind() string {
 }
 
 func (def *OperationTypeDefinition) GetLoc() *Location {
-	return def.Loc
+	return &def.Loc
 }
 
 // ScalarDefinition implements Node, Definition
 type ScalarDefinition struct {
 	Kind        string
-	Loc         *Location
+	Loc         Location
 	Description *StringValue
 	Name        *Name
 	Directives  []*Directive
@@ -133,7 +133,7 @@ func (def *ScalarDefinition) GetKind() string {
 }
 
 func (def *ScalarDefinition) GetLoc() *Location {
-	return def.Loc
+	return &def.Loc
 }
 
 func (def *ScalarDefinition) GetName() *Name {
@@ -159,7 +159,7 @@ func (def *ScalarDefinition) GetDescription() *StringValue {
 // ObjectDefinition implements Node, Definition
 type ObjectDefinition struct {
 	Kind        string
-	Loc         *Location
+	Loc         Location
 	Name        *Name
 	Description *StringValue
 	Interfaces  []*Named
@@ -187,7 +187,7 @@ func (def *ObjectDefinition) GetKind() string {
 }
 
 func (def *ObjectDefinition) GetLoc() *Location {
-	return def.Loc
+	return &def.Loc
 }
 
 func (def *ObjectDefinition) GetName() *Name {
@@ -213,7 +213,7 @@ func (def *ObjectDefinition) GetDescription() *StringValue {
 // FieldDefinition implements Node
 type FieldDefinition struct {
 	Kind        string
-	Loc         *Location
+	Loc         Location
 	Name        *Name
 	Description *StringValue
 	Arguments   []*InputValueDefinition
@@ -241,7 +241,7 @@ func (def *FieldDefinition) GetKind() string {
 }
 
 func (def *FieldDefinition) GetLoc() *Location {
-	return def.Loc
+	return &def.Loc
 }
 
 func (def *FieldDefinition) GetDescription() *StringValue {
@@ -251,7 +251,7 @@ func (def *FieldDefinition) GetDescription() *StringValue {
 // InputValueDefinition implements Node
 type InputValueDefinition struct {
 	Kind         string
-	Loc          *Location
+	Loc          Location
 	Name         *Name
 	Description  *StringValue
 	Type         Type
@@ -279,7 +279,7 @@ func (def *InputValueDefinition) GetKind() string {
 }
 
 func (def *InputValueDefinition) GetLoc() *Location {
-	return def.Loc
+	return &def.Loc
 }
 
 func (def *InputValueDefinition) GetDescription() *StringValue {
@@ -289,7 +289,7 @@ func (def *InputValueDefinition) GetDescription() *StringValue {
 // InterfaceDefinition implements Node, Definition
 type InterfaceDefinition struct {
 	Kind        string
-	Loc         *Location
+	Loc         Location
 	Name        *Name
 	Description *StringValue
 	Directives  []*Directive
@@ -315,7 +315,7 @@ func (def *InterfaceDefinition) GetKind() string {
 }
 
 func (def *InterfaceDefinition) GetLoc() *Location {
-	return def.Loc
+	return &def.Loc
 }
 
 func (def *InterfaceDefinition) GetName() *Name {
@@ -341,7 +341,7 @@ func (def *InterfaceDefinition) GetDescription() *StringValue {
 // UnionDefinition implements Node, Definition
 type UnionDefinition struct {
 	Kind        string
-	Loc         *Location
+	Loc         Location
 	Name        *Name
 	Description *StringValue
 	Directives  []*Directive
@@ -367,7 +367,7 @@ func (def *UnionDefinition) GetKind() string {
 }
 
 func (def *UnionDefinition) GetLoc() *Location {
-	return def.Loc
+	return &def.Loc
 }
 
 func (def *UnionDefinition) GetName() *Name {
@@ -393,7 +393,7 @@ func (def *UnionDefinition) GetDescription() *StringValue {
 // EnumDefinition implements Node, Definition
 type EnumDefinition struct {
 	Kind        string
-	Loc         *Location
+	Loc         Location
 	Name        *Name
 	Description *StringValue
 	Directives  []*Directive
@@ -419,7 +419,7 @@ func (def *EnumDefinition) GetKind() string {
 }
 
 func (def *EnumDefinition) GetLoc() *Location {
-	return def.Loc
+	return &def.Loc
 }
 
 func (def *EnumDefinition) GetName() *Name {
@@ -445,7 +445,7 @@ func (def *EnumDefinition) GetDescription() *StringValue {
 // EnumValueDefinition implements Node, Definition
 type EnumValueDefinition struct {
 	Kind        string
-	Loc         *Location
+	Loc         Location
 	Name        *Name
 	Description *StringValue
 	Directives  []*Directive
@@ -469,7 +469,7 @@ func (def *EnumValueDefinition) GetKind() string {
 }
 
 func (def *EnumValueDefinition) GetLoc() *Location {
-	return def.Loc
+	return &def.Loc
 }
 
 func (def *EnumValueDefinition) GetDescription() *StringValue {
@@ -479,7 +479,7 @@ func (def *EnumValueDefinition) GetDescription() *StringValue {
 // InputObjectDefinition implements Node, Definition
 type InputObjectDefinition struct {
 	Kind        string
-	Loc         *Location
+	Loc         Location
 	Name        *Name
 	Description *StringValue
 	Directives  []*Directive
@@ -505,7 +505,7 @@ func (def *InputObjectDefinition) GetKind() string {
 }
 
 func (def *InputObjectDefinition) GetLoc() *Location {
-	return def.Loc
+	return &def.Loc
 }
 
 func (def *InputObjectDefinition) GetName() *Name {

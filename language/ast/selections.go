@@ -16,7 +16,7 @@ var _ Selection = (*InlineFragment)(nil)
 // Field implements Node, Selection
 type Field struct {
 	Kind         string
-	Loc          *Location
+	Loc          Location
 	Alias        *Name
 	Name         *Name
 	Arguments    []*Argument
@@ -44,7 +44,7 @@ func (f *Field) GetKind() string {
 }
 
 func (f *Field) GetLoc() *Location {
-	return f.Loc
+	return &f.Loc
 }
 
 func (f *Field) GetSelectionSet() *SelectionSet {
@@ -54,7 +54,7 @@ func (f *Field) GetSelectionSet() *SelectionSet {
 // FragmentSpread implements Node, Selection
 type FragmentSpread struct {
 	Kind       string
-	Loc        *Location
+	Loc        Location
 	Name       *Name
 	Directives []*Directive
 }
@@ -76,7 +76,7 @@ func (fs *FragmentSpread) GetKind() string {
 }
 
 func (fs *FragmentSpread) GetLoc() *Location {
-	return fs.Loc
+	return &fs.Loc
 }
 
 func (fs *FragmentSpread) GetSelectionSet() *SelectionSet {
@@ -86,7 +86,7 @@ func (fs *FragmentSpread) GetSelectionSet() *SelectionSet {
 // InlineFragment implements Node, Selection
 type InlineFragment struct {
 	Kind          string
-	Loc           *Location
+	Loc           Location
 	TypeCondition *Named
 	Directives    []*Directive
 	SelectionSet  *SelectionSet
@@ -110,7 +110,7 @@ func (f *InlineFragment) GetKind() string {
 }
 
 func (f *InlineFragment) GetLoc() *Location {
-	return f.Loc
+	return &f.Loc
 }
 
 func (f *InlineFragment) GetSelectionSet() *SelectionSet {
@@ -120,7 +120,7 @@ func (f *InlineFragment) GetSelectionSet() *SelectionSet {
 // SelectionSet implements Node
 type SelectionSet struct {
 	Kind       string
-	Loc        *Location
+	Loc        Location
 	Selections []Selection
 }
 
@@ -140,5 +140,5 @@ func (ss *SelectionSet) GetKind() string {
 }
 
 func (ss *SelectionSet) GetLoc() *Location {
-	return ss.Loc
+	return &ss.Loc
 }

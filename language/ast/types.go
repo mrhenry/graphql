@@ -18,7 +18,7 @@ var _ Type = (*NonNull)(nil)
 // Named implements Node, Type
 type Named struct {
 	Kind string
-	Loc  *Location
+	Loc  Location
 	Name *Name
 }
 
@@ -38,7 +38,7 @@ func (t *Named) GetKind() string {
 }
 
 func (t *Named) GetLoc() *Location {
-	return t.Loc
+	return &t.Loc
 }
 
 func (t *Named) String() string {
@@ -48,7 +48,7 @@ func (t *Named) String() string {
 // List implements Node, Type
 type List struct {
 	Kind string
-	Loc  *Location
+	Loc  Location
 	Type Type
 }
 
@@ -68,7 +68,7 @@ func (t *List) GetKind() string {
 }
 
 func (t *List) GetLoc() *Location {
-	return t.Loc
+	return &t.Loc
 }
 
 func (t *List) String() string {
@@ -78,7 +78,7 @@ func (t *List) String() string {
 // NonNull implements Node, Type
 type NonNull struct {
 	Kind string
-	Loc  *Location
+	Loc  Location
 	Type Type
 }
 
@@ -98,7 +98,7 @@ func (t *NonNull) GetKind() string {
 }
 
 func (t *NonNull) GetLoc() *Location {
-	return t.Loc
+	return &t.Loc
 }
 
 func (t *NonNull) String() string {

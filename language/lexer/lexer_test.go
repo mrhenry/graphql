@@ -1,6 +1,7 @@
 package lexer
 
 import (
+	"io/ioutil"
 	"reflect"
 	"testing"
 
@@ -19,7 +20,7 @@ func createSource(body string) *source.Source {
 func TestLexer_GetTokenDesc(t *testing.T) {
 	expected := `Name "foo"`
 	tokenDescription := GetTokenDesc(Token{
-		Kind:  TokenKind[NAME],
+		Kind:  NAME,
 		Start: 2,
 		End:   5,
 		Value: "foo",
@@ -30,7 +31,7 @@ func TestLexer_GetTokenDesc(t *testing.T) {
 
 	expected = `Name`
 	tokenDescription = GetTokenDesc(Token{
-		Kind:  TokenKind[NAME],
+		Kind:  NAME,
 		Start: 0,
 		End:   0,
 		Value: "",
@@ -41,7 +42,7 @@ func TestLexer_GetTokenDesc(t *testing.T) {
 
 	expected = `String "foo"`
 	tokenDescription = GetTokenDesc(Token{
-		Kind:  TokenKind[STRING],
+		Kind:  STRING,
 		Start: 2,
 		End:   5,
 		Value: "foo",
@@ -52,7 +53,7 @@ func TestLexer_GetTokenDesc(t *testing.T) {
 
 	expected = `String`
 	tokenDescription = GetTokenDesc(Token{
-		Kind:  TokenKind[STRING],
+		Kind:  STRING,
 		Start: 0,
 		End:   0,
 		Value: "",
@@ -90,7 +91,7 @@ func TestLexer_AcceptsBOMHeader(t *testing.T) {
 		{
 			Body: "\uFEFF foo",
 			Expected: Token{
-				Kind:  TokenKind[NAME],
+				Kind:  NAME,
 				Start: 2,
 				End:   5,
 				Value: "foo",
@@ -117,7 +118,7 @@ func TestLexer_SkipsWhiteSpace(t *testing.T) {
 
 `,
 			Expected: Token{
-				Kind:  TokenKind[NAME],
+				Kind:  NAME,
 				Start: 6,
 				End:   9,
 				Value: "foo",
@@ -129,7 +130,7 @@ func TestLexer_SkipsWhiteSpace(t *testing.T) {
     foo#comment
 `,
 			Expected: Token{
-				Kind:  TokenKind[NAME],
+				Kind:  NAME,
 				Start: 18,
 				End:   21,
 				Value: "foo",
@@ -138,7 +139,7 @@ func TestLexer_SkipsWhiteSpace(t *testing.T) {
 		{
 			Body: `,,,foo,,,`,
 			Expected: Token{
-				Kind:  TokenKind[NAME],
+				Kind:  NAME,
 				Start: 3,
 				End:   6,
 				Value: "foo",
@@ -147,7 +148,7 @@ func TestLexer_SkipsWhiteSpace(t *testing.T) {
 		{
 			Body: ``,
 			Expected: Token{
-				Kind:  TokenKind[EOF],
+				Kind:  EOF,
 				Start: 0,
 				End:   0,
 				Value: "",
@@ -186,7 +187,7 @@ func TestLexer_LexesNames(t *testing.T) {
 		{
 			Body: "simple",
 			Expected: Token{
-				Kind:  TokenKind[NAME],
+				Kind:  NAME,
 				Start: 0,
 				End:   6,
 				Value: "simple",
@@ -195,7 +196,7 @@ func TestLexer_LexesNames(t *testing.T) {
 		{
 			Body: "Capital",
 			Expected: Token{
-				Kind:  TokenKind[NAME],
+				Kind:  NAME,
 				Start: 0,
 				End:   7,
 				Value: "Capital",
@@ -218,7 +219,7 @@ func TestLexer_LexesStrings(t *testing.T) {
 		{
 			Body: "\"simple\"",
 			Expected: Token{
-				Kind:  TokenKind[STRING],
+				Kind:  STRING,
 				Start: 0,
 				End:   8,
 				Value: "simple",
@@ -227,7 +228,7 @@ func TestLexer_LexesStrings(t *testing.T) {
 		{
 			Body: "\" white space \"",
 			Expected: Token{
-				Kind:  TokenKind[STRING],
+				Kind:  STRING,
 				Start: 0,
 				End:   15,
 				Value: " white space ",
@@ -236,7 +237,7 @@ func TestLexer_LexesStrings(t *testing.T) {
 		{
 			Body: "\"quote \\\"\"",
 			Expected: Token{
-				Kind:  TokenKind[STRING],
+				Kind:  STRING,
 				Start: 0,
 				End:   10,
 				Value: `quote "`,
@@ -245,7 +246,7 @@ func TestLexer_LexesStrings(t *testing.T) {
 		{
 			Body: "\"escaped \\n\\r\\b\\t\\f\"",
 			Expected: Token{
-				Kind:  TokenKind[STRING],
+				Kind:  STRING,
 				Start: 0,
 				End:   20,
 				Value: "escaped \n\r\b\t\f",
@@ -254,7 +255,7 @@ func TestLexer_LexesStrings(t *testing.T) {
 		{
 			Body: "\"slashes \\\\ \\/\"",
 			Expected: Token{
-				Kind:  TokenKind[STRING],
+				Kind:  STRING,
 				Start: 0,
 				End:   15,
 				Value: "slashes \\ /",
@@ -263,7 +264,7 @@ func TestLexer_LexesStrings(t *testing.T) {
 		{
 			Body: "\"unicode \\u1234\\u5678\\u90AB\\uCDEF\"",
 			Expected: Token{
-				Kind:  TokenKind[STRING],
+				Kind:  STRING,
 				Start: 0,
 				End:   34,
 				Value: "unicode \u1234\u5678\u90AB\uCDEF",
@@ -272,7 +273,7 @@ func TestLexer_LexesStrings(t *testing.T) {
 		{
 			Body: "\"unicode фы世界\"",
 			Expected: Token{
-				Kind:  TokenKind[STRING],
+				Kind:  STRING,
 				Start: 0,
 				End:   20,
 				Value: "unicode фы世界",
@@ -281,7 +282,7 @@ func TestLexer_LexesStrings(t *testing.T) {
 		{
 			Body: "\"фы世界\"",
 			Expected: Token{
-				Kind:  TokenKind[STRING],
+				Kind:  STRING,
 				Start: 0,
 				End:   12,
 				Value: "фы世界",
@@ -290,7 +291,7 @@ func TestLexer_LexesStrings(t *testing.T) {
 		{
 			Body: "\"Has a фы世界 multi-byte character.\"",
 			Expected: Token{
-				Kind:  TokenKind[STRING],
+				Kind:  STRING,
 				Start: 0,
 				End:   40,
 				Value: "Has a фы世界 multi-byte character.",
@@ -452,7 +453,7 @@ func TestLexer_LexesBlockStrings(t *testing.T) {
 		{
 			Body: `"""simple"""`,
 			Expected: Token{
-				Kind:  TokenKind[BLOCK_STRING],
+				Kind:  BLOCK_STRING,
 				Start: 0,
 				End:   12,
 				Value: "simple",
@@ -461,7 +462,7 @@ func TestLexer_LexesBlockStrings(t *testing.T) {
 		{
 			Body: `""" white space """`,
 			Expected: Token{
-				Kind:  TokenKind[BLOCK_STRING],
+				Kind:  BLOCK_STRING,
 				Start: 0,
 				End:   19,
 				Value: " white space ",
@@ -474,7 +475,7 @@ func TestLexer_LexesBlockStrings(t *testing.T) {
 				"""  white space """
 			`,
 			Expected: Token{
-				Kind:  TokenKind[BLOCK_STRING],
+				Kind:  BLOCK_STRING,
 				Start: 5,
 				End:   25,
 				Value: "  white space ",
@@ -490,7 +491,7 @@ func TestLexer_LexesBlockStrings(t *testing.T) {
 				"""
 			`,
 			Expected: Token{
-				Kind:  TokenKind[BLOCK_STRING],
+				Kind:  BLOCK_STRING,
 				Start: 5,
 				End:   89,
 				Value: "my great description\nspans multiple lines\n\nwith breaks",
@@ -499,7 +500,7 @@ func TestLexer_LexesBlockStrings(t *testing.T) {
 		{
 			Body: `"""contains " quote"""`,
 			Expected: Token{
-				Kind:  TokenKind[BLOCK_STRING],
+				Kind:  BLOCK_STRING,
 				Start: 0,
 				End:   22,
 				Value: `contains " quote`,
@@ -508,7 +509,7 @@ func TestLexer_LexesBlockStrings(t *testing.T) {
 		{
 			Body: `"""contains \""" triplequote"""`,
 			Expected: Token{
-				Kind:  TokenKind[BLOCK_STRING],
+				Kind:  BLOCK_STRING,
 				Start: 0,
 				End:   31,
 				Value: `contains """ triplequote`,
@@ -517,7 +518,7 @@ func TestLexer_LexesBlockStrings(t *testing.T) {
 		{
 			Body: "\"\"\"multi\nline\"\"\"",
 			Expected: Token{
-				Kind:  TokenKind[BLOCK_STRING],
+				Kind:  BLOCK_STRING,
 				Start: 0,
 				End:   16,
 				Value: "multi\nline",
@@ -526,7 +527,7 @@ func TestLexer_LexesBlockStrings(t *testing.T) {
 		{
 			Body: "\"\"\"multi\rline\r\nnormalized\"\"\"",
 			Expected: Token{
-				Kind:  TokenKind[BLOCK_STRING],
+				Kind:  BLOCK_STRING,
 				Start: 0,
 				End:   28,
 				Value: "multi\nline\nnormalized",
@@ -535,7 +536,7 @@ func TestLexer_LexesBlockStrings(t *testing.T) {
 		{
 			Body: "\"\"\"unescaped \\n\\r\\b\\t\\f\\u1234\"\"\"",
 			Expected: Token{
-				Kind:  TokenKind[BLOCK_STRING],
+				Kind:  BLOCK_STRING,
 				Start: 0,
 				End:   32,
 				Value: "unescaped \\n\\r\\b\\t\\f\\u1234",
@@ -544,7 +545,7 @@ func TestLexer_LexesBlockStrings(t *testing.T) {
 		{
 			Body: "\"\"\"slashes \\\\ \\/\"\"\"",
 			Expected: Token{
-				Kind:  TokenKind[BLOCK_STRING],
+				Kind:  BLOCK_STRING,
 				Start: 0,
 				End:   19,
 				Value: "slashes \\\\ \\/",
@@ -614,7 +615,7 @@ func TestLexer_LexesNumbers(t *testing.T) {
 		{
 			Body: "4",
 			Expected: Token{
-				Kind:  TokenKind[INT],
+				Kind:  INT,
 				Start: 0,
 				End:   1,
 				Value: "4",
@@ -623,7 +624,7 @@ func TestLexer_LexesNumbers(t *testing.T) {
 		{
 			Body: "4.123",
 			Expected: Token{
-				Kind:  TokenKind[FLOAT],
+				Kind:  FLOAT,
 				Start: 0,
 				End:   5,
 				Value: "4.123",
@@ -632,7 +633,7 @@ func TestLexer_LexesNumbers(t *testing.T) {
 		{
 			Body: "-4",
 			Expected: Token{
-				Kind:  TokenKind[INT],
+				Kind:  INT,
 				Start: 0,
 				End:   2,
 				Value: "-4",
@@ -641,7 +642,7 @@ func TestLexer_LexesNumbers(t *testing.T) {
 		{
 			Body: "9",
 			Expected: Token{
-				Kind:  TokenKind[INT],
+				Kind:  INT,
 				Start: 0,
 				End:   1,
 				Value: "9",
@@ -650,7 +651,7 @@ func TestLexer_LexesNumbers(t *testing.T) {
 		{
 			Body: "0",
 			Expected: Token{
-				Kind:  TokenKind[INT],
+				Kind:  INT,
 				Start: 0,
 				End:   1,
 				Value: "0",
@@ -659,7 +660,7 @@ func TestLexer_LexesNumbers(t *testing.T) {
 		{
 			Body: "-4.123",
 			Expected: Token{
-				Kind:  TokenKind[FLOAT],
+				Kind:  FLOAT,
 				Start: 0,
 				End:   6,
 				Value: "-4.123",
@@ -668,7 +669,7 @@ func TestLexer_LexesNumbers(t *testing.T) {
 		{
 			Body: "0.123",
 			Expected: Token{
-				Kind:  TokenKind[FLOAT],
+				Kind:  FLOAT,
 				Start: 0,
 				End:   5,
 				Value: "0.123",
@@ -677,7 +678,7 @@ func TestLexer_LexesNumbers(t *testing.T) {
 		{
 			Body: "123e4",
 			Expected: Token{
-				Kind:  TokenKind[FLOAT],
+				Kind:  FLOAT,
 				Start: 0,
 				End:   5,
 				Value: "123e4",
@@ -686,7 +687,7 @@ func TestLexer_LexesNumbers(t *testing.T) {
 		{
 			Body: "123E4",
 			Expected: Token{
-				Kind:  TokenKind[FLOAT],
+				Kind:  FLOAT,
 				Start: 0,
 				End:   5,
 				Value: "123E4",
@@ -695,7 +696,7 @@ func TestLexer_LexesNumbers(t *testing.T) {
 		{
 			Body: "123e-4",
 			Expected: Token{
-				Kind:  TokenKind[FLOAT],
+				Kind:  FLOAT,
 				Start: 0,
 				End:   6,
 				Value: "123e-4",
@@ -704,7 +705,7 @@ func TestLexer_LexesNumbers(t *testing.T) {
 		{
 			Body: "123e+4",
 			Expected: Token{
-				Kind:  TokenKind[FLOAT],
+				Kind:  FLOAT,
 				Start: 0,
 				End:   6,
 				Value: "123e+4",
@@ -713,7 +714,7 @@ func TestLexer_LexesNumbers(t *testing.T) {
 		{
 			Body: "-1.123e4",
 			Expected: Token{
-				Kind:  TokenKind[FLOAT],
+				Kind:  FLOAT,
 				Start: 0,
 				End:   8,
 				Value: "-1.123e4",
@@ -722,7 +723,7 @@ func TestLexer_LexesNumbers(t *testing.T) {
 		{
 			Body: "-1.123E4",
 			Expected: Token{
-				Kind:  TokenKind[FLOAT],
+				Kind:  FLOAT,
 				Start: 0,
 				End:   8,
 				Value: "-1.123E4",
@@ -731,7 +732,7 @@ func TestLexer_LexesNumbers(t *testing.T) {
 		{
 			Body: "-1.123e-4",
 			Expected: Token{
-				Kind:  TokenKind[FLOAT],
+				Kind:  FLOAT,
 				Start: 0,
 				End:   9,
 				Value: "-1.123e-4",
@@ -740,7 +741,7 @@ func TestLexer_LexesNumbers(t *testing.T) {
 		{
 			Body: "-1.123e+4",
 			Expected: Token{
-				Kind:  TokenKind[FLOAT],
+				Kind:  FLOAT,
 				Start: 0,
 				End:   9,
 				Value: "-1.123e+4",
@@ -749,7 +750,7 @@ func TestLexer_LexesNumbers(t *testing.T) {
 		{
 			Body: "-1.123e4567",
 			Expected: Token{
-				Kind:  TokenKind[FLOAT],
+				Kind:  FLOAT,
 				Start: 0,
 				End:   11,
 				Value: "-1.123e4567",
@@ -851,7 +852,7 @@ func TestLexer_LexesPunctuation(t *testing.T) {
 		{
 			Body: "!",
 			Expected: Token{
-				Kind:  TokenKind[BANG],
+				Kind:  BANG,
 				Start: 0,
 				End:   1,
 				Value: "",
@@ -860,7 +861,7 @@ func TestLexer_LexesPunctuation(t *testing.T) {
 		{
 			Body: "$",
 			Expected: Token{
-				Kind:  TokenKind[DOLLAR],
+				Kind:  DOLLAR,
 				Start: 0,
 				End:   1,
 				Value: "",
@@ -869,7 +870,7 @@ func TestLexer_LexesPunctuation(t *testing.T) {
 		{
 			Body: "(",
 			Expected: Token{
-				Kind:  TokenKind[PAREN_L],
+				Kind:  PAREN_L,
 				Start: 0,
 				End:   1,
 				Value: "",
@@ -878,7 +879,7 @@ func TestLexer_LexesPunctuation(t *testing.T) {
 		{
 			Body: ")",
 			Expected: Token{
-				Kind:  TokenKind[PAREN_R],
+				Kind:  PAREN_R,
 				Start: 0,
 				End:   1,
 				Value: "",
@@ -887,7 +888,7 @@ func TestLexer_LexesPunctuation(t *testing.T) {
 		{
 			Body: "...",
 			Expected: Token{
-				Kind:  TokenKind[SPREAD],
+				Kind:  SPREAD,
 				Start: 0,
 				End:   3,
 				Value: "",
@@ -896,7 +897,7 @@ func TestLexer_LexesPunctuation(t *testing.T) {
 		{
 			Body: ":",
 			Expected: Token{
-				Kind:  TokenKind[COLON],
+				Kind:  COLON,
 				Start: 0,
 				End:   1,
 				Value: "",
@@ -905,7 +906,7 @@ func TestLexer_LexesPunctuation(t *testing.T) {
 		{
 			Body: "=",
 			Expected: Token{
-				Kind:  TokenKind[EQUALS],
+				Kind:  EQUALS,
 				Start: 0,
 				End:   1,
 				Value: "",
@@ -914,7 +915,7 @@ func TestLexer_LexesPunctuation(t *testing.T) {
 		{
 			Body: "@",
 			Expected: Token{
-				Kind:  TokenKind[AT],
+				Kind:  AT,
 				Start: 0,
 				End:   1,
 				Value: "",
@@ -923,7 +924,7 @@ func TestLexer_LexesPunctuation(t *testing.T) {
 		{
 			Body: "[",
 			Expected: Token{
-				Kind:  TokenKind[BRACKET_L],
+				Kind:  BRACKET_L,
 				Start: 0,
 				End:   1,
 				Value: "",
@@ -932,7 +933,7 @@ func TestLexer_LexesPunctuation(t *testing.T) {
 		{
 			Body: "]",
 			Expected: Token{
-				Kind:  TokenKind[BRACKET_R],
+				Kind:  BRACKET_R,
 				Start: 0,
 				End:   1,
 				Value: "",
@@ -941,7 +942,7 @@ func TestLexer_LexesPunctuation(t *testing.T) {
 		{
 			Body: "{",
 			Expected: Token{
-				Kind:  TokenKind[BRACE_L],
+				Kind:  BRACE_L,
 				Start: 0,
 				End:   1,
 				Value: "",
@@ -950,7 +951,7 @@ func TestLexer_LexesPunctuation(t *testing.T) {
 		{
 			Body: "|",
 			Expected: Token{
-				Kind:  TokenKind[PIPE],
+				Kind:  PIPE,
 				Start: 0,
 				End:   1,
 				Value: "",
@@ -959,7 +960,7 @@ func TestLexer_LexesPunctuation(t *testing.T) {
 		{
 			Body: "}",
 			Expected: Token{
-				Kind:  TokenKind[BRACE_R],
+				Kind:  BRACE_R,
 				Start: 0,
 				End:   1,
 				Value: "",
@@ -1039,7 +1040,7 @@ func TestLexer_ReportsUsefulInformationForDashesInNames(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	firstTokenExpected := Token{
-		Kind:  TokenKind[NAME],
+		Kind:  NAME,
 		Start: 0,
 		End:   1,
 		Value: "a",
@@ -1058,5 +1059,34 @@ func TestLexer_ReportsUsefulInformationForDashesInNames(t *testing.T) {
 	}
 	if err.Error() != errExpected {
 		t.Fatalf("unexpected error, token:%v\nexpected:\n%v\n\ngot:\n%v", token, errExpected, err.Error())
+	}
+}
+
+func BenchmarkKitchenSink(b *testing.B) {
+	data, err := ioutil.ReadFile("../../kitchen-sink.graphql")
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	src := source.NewSource(&source.Source{
+		Name: "bench",
+		Body: data,
+	})
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		lexer := Lex(src)
+
+		for {
+			tok, err := lexer(0)
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			if tok.Kind == EOF {
+				break
+			}
+		}
 	}
 }

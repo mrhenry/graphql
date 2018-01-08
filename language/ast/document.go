@@ -7,7 +7,7 @@ import (
 // Document implements Node
 type Document struct {
 	Kind        string
-	Loc         *Location
+	Loc         Location
 	Definitions []Node
 }
 
@@ -27,5 +27,5 @@ func (node *Document) GetKind() string {
 }
 
 func (node *Document) GetLoc() *Location {
-	return node.Loc
+	return &node.Loc
 }

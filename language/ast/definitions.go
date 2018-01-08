@@ -27,7 +27,7 @@ const (
 // OperationDefinition implements Node, Definition
 type OperationDefinition struct {
 	Kind                string
-	Loc                 *Location
+	Loc                 Location
 	Operation           string
 	Name                *Name
 	VariableDefinitions []*VariableDefinition
@@ -55,7 +55,7 @@ func (op *OperationDefinition) GetKind() string {
 }
 
 func (op *OperationDefinition) GetLoc() *Location {
-	return op.Loc
+	return &op.Loc
 }
 
 func (op *OperationDefinition) GetOperation() string {
@@ -81,7 +81,7 @@ func (op *OperationDefinition) GetSelectionSet() *SelectionSet {
 // FragmentDefinition implements Node, Definition
 type FragmentDefinition struct {
 	Kind                string
-	Loc                 *Location
+	Loc                 Location
 	Operation           string
 	Name                *Name
 	VariableDefinitions []*VariableDefinition
@@ -111,7 +111,7 @@ func (fd *FragmentDefinition) GetKind() string {
 }
 
 func (fd *FragmentDefinition) GetLoc() *Location {
-	return fd.Loc
+	return &fd.Loc
 }
 
 func (fd *FragmentDefinition) GetOperation() string {
@@ -133,7 +133,7 @@ func (fd *FragmentDefinition) GetSelectionSet() *SelectionSet {
 // VariableDefinition implements Node
 type VariableDefinition struct {
 	Kind         string
-	Loc          *Location
+	Loc          Location
 	Variable     *Variable
 	Type         Type
 	DefaultValue Value
@@ -157,13 +157,13 @@ func (vd *VariableDefinition) GetKind() string {
 }
 
 func (vd *VariableDefinition) GetLoc() *Location {
-	return vd.Loc
+	return &vd.Loc
 }
 
 // TypeExtensionDefinition implements Node, Definition
 type TypeExtensionDefinition struct {
 	Kind       string
-	Loc        *Location
+	Loc        Location
 	Definition *ObjectDefinition
 }
 
@@ -183,7 +183,7 @@ func (def *TypeExtensionDefinition) GetKind() string {
 }
 
 func (def *TypeExtensionDefinition) GetLoc() *Location {
-	return def.Loc
+	return &def.Loc
 }
 
 func (def *TypeExtensionDefinition) GetVariableDefinitions() []*VariableDefinition {
@@ -201,7 +201,7 @@ func (def *TypeExtensionDefinition) GetOperation() string {
 // DirectiveDefinition implements Node, Definition
 type DirectiveDefinition struct {
 	Kind        string
-	Loc         *Location
+	Loc         Location
 	Name        *Name
 	Description *StringValue
 	Arguments   []*InputValueDefinition
@@ -227,7 +227,7 @@ func (def *DirectiveDefinition) GetKind() string {
 }
 
 func (def *DirectiveDefinition) GetLoc() *Location {
-	return def.Loc
+	return &def.Loc
 }
 
 func (def *DirectiveDefinition) GetVariableDefinitions() []*VariableDefinition {

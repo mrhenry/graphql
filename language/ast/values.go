@@ -23,7 +23,7 @@ var _ Value = (*ObjectValue)(nil)
 // Variable implements Node, Value
 type Variable struct {
 	Kind string
-	Loc  *Location
+	Loc  Location
 	Name *Name
 }
 
@@ -43,7 +43,7 @@ func (v *Variable) GetKind() string {
 }
 
 func (v *Variable) GetLoc() *Location {
-	return v.Loc
+	return &v.Loc
 }
 
 // GetValue alias to Variable.GetName()
@@ -58,7 +58,7 @@ func (v *Variable) GetName() interface{} {
 // IntValue implements Node, Value
 type IntValue struct {
 	Kind  string
-	Loc   *Location
+	Loc   Location
 	Value string
 }
 
@@ -78,7 +78,7 @@ func (v *IntValue) GetKind() string {
 }
 
 func (v *IntValue) GetLoc() *Location {
-	return v.Loc
+	return &v.Loc
 }
 
 func (v *IntValue) GetValue() interface{} {
@@ -88,7 +88,7 @@ func (v *IntValue) GetValue() interface{} {
 // FloatValue implements Node, Value
 type FloatValue struct {
 	Kind  string
-	Loc   *Location
+	Loc   Location
 	Value string
 }
 
@@ -108,7 +108,7 @@ func (v *FloatValue) GetKind() string {
 }
 
 func (v *FloatValue) GetLoc() *Location {
-	return v.Loc
+	return &v.Loc
 }
 
 func (v *FloatValue) GetValue() interface{} {
@@ -118,7 +118,7 @@ func (v *FloatValue) GetValue() interface{} {
 // StringValue implements Node, Value
 type StringValue struct {
 	Kind  string
-	Loc   *Location
+	Loc   Location
 	Value string
 }
 
@@ -138,7 +138,7 @@ func (v *StringValue) GetKind() string {
 }
 
 func (v *StringValue) GetLoc() *Location {
-	return v.Loc
+	return &v.Loc
 }
 
 func (v *StringValue) GetValue() interface{} {
@@ -148,7 +148,7 @@ func (v *StringValue) GetValue() interface{} {
 // BooleanValue implements Node, Value
 type BooleanValue struct {
 	Kind  string
-	Loc   *Location
+	Loc   Location
 	Value bool
 }
 
@@ -168,7 +168,7 @@ func (v *BooleanValue) GetKind() string {
 }
 
 func (v *BooleanValue) GetLoc() *Location {
-	return v.Loc
+	return &v.Loc
 }
 
 func (v *BooleanValue) GetValue() interface{} {
@@ -178,7 +178,7 @@ func (v *BooleanValue) GetValue() interface{} {
 // EnumValue implements Node, Value
 type EnumValue struct {
 	Kind  string
-	Loc   *Location
+	Loc   Location
 	Value string
 }
 
@@ -198,7 +198,7 @@ func (v *EnumValue) GetKind() string {
 }
 
 func (v *EnumValue) GetLoc() *Location {
-	return v.Loc
+	return &v.Loc
 }
 
 func (v *EnumValue) GetValue() interface{} {
@@ -208,7 +208,7 @@ func (v *EnumValue) GetValue() interface{} {
 // ListValue implements Node, Value
 type ListValue struct {
 	Kind   string
-	Loc    *Location
+	Loc    Location
 	Values []Value
 }
 
@@ -228,7 +228,7 @@ func (v *ListValue) GetKind() string {
 }
 
 func (v *ListValue) GetLoc() *Location {
-	return v.Loc
+	return &v.Loc
 }
 
 // GetValue alias to ListValue.GetValues()
@@ -244,7 +244,7 @@ func (v *ListValue) GetValues() interface{} {
 // ObjectValue implements Node, Value
 type ObjectValue struct {
 	Kind   string
-	Loc    *Location
+	Loc    Location
 	Fields []*ObjectField
 }
 
@@ -264,7 +264,7 @@ func (v *ObjectValue) GetKind() string {
 }
 
 func (v *ObjectValue) GetLoc() *Location {
-	return v.Loc
+	return &v.Loc
 }
 
 func (v *ObjectValue) GetValue() interface{} {
@@ -276,7 +276,7 @@ func (v *ObjectValue) GetValue() interface{} {
 type ObjectField struct {
 	Kind  string
 	Name  *Name
-	Loc   *Location
+	Loc   Location
 	Value Value
 }
 
@@ -297,7 +297,7 @@ func (f *ObjectField) GetKind() string {
 }
 
 func (f *ObjectField) GetLoc() *Location {
-	return f.Loc
+	return &f.Loc
 }
 
 func (f *ObjectField) GetValue() interface{} {

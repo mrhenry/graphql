@@ -40,24 +40,24 @@ func TestAcceptsOptionToNotIncludeSource(t *testing.T) {
 	}
 	oDef := ast.OperationDefinition{
 		Kind: "OperationDefinition",
-		Loc: &ast.Location{
+		Loc: ast.Location{
 			Start: 0, End: 9,
 		},
 		Operation: "query",
 		SelectionSet: &ast.SelectionSet{
 			Kind: "SelectionSet",
-			Loc: &ast.Location{
+			Loc: ast.Location{
 				Start: 0, End: 9,
 			},
 			Selections: []ast.Selection{
 				&ast.Field{
 					Kind: "Field",
-					Loc: &ast.Location{
+					Loc: ast.Location{
 						Start: 2, End: 7,
 					},
 					Name: &ast.Name{
 						Kind: "Name",
-						Loc: &ast.Location{
+						Loc: ast.Location{
 							Start: 2, End: 7,
 						},
 						Value: "field",
@@ -67,7 +67,7 @@ func TestAcceptsOptionToNotIncludeSource(t *testing.T) {
 		},
 	}
 	expectedDocument := ast.NewDocument(&ast.Document{
-		Loc: &ast.Location{
+		Loc: ast.Location{
 			Start: 0, End: 9,
 		},
 		Definitions: []ast.Node{&oDef},
@@ -198,30 +198,30 @@ func TestParsesMultiByteCharacters_Unicode(t *testing.T) {
 	astDoc := parse(t, doc)
 
 	expectedASTDoc := ast.NewDocument(&ast.Document{
-		Loc: ast.NewLocation(&ast.Location{
+		Loc: ast.NewLocation(ast.Location{
 			Start: 67,
 			End:   121,
 		}),
 		Definitions: []ast.Node{
 			ast.NewOperationDefinition(&ast.OperationDefinition{
-				Loc: ast.NewLocation(&ast.Location{
+				Loc: ast.NewLocation(ast.Location{
 					Start: 67,
 					End:   119,
 				}),
 				Operation: "query",
 				SelectionSet: ast.NewSelectionSet(&ast.SelectionSet{
-					Loc: ast.NewLocation(&ast.Location{
+					Loc: ast.NewLocation(ast.Location{
 						Start: 67,
 						End:   119,
 					}),
 					Selections: []ast.Selection{
 						ast.NewField(&ast.Field{
-							Loc: ast.NewLocation(&ast.Location{
+							Loc: ast.NewLocation(ast.Location{
 								Start: 67,
 								End:   117,
 							}),
 							Name: ast.NewName(&ast.Name{
-								Loc: ast.NewLocation(&ast.Location{
+								Loc: ast.NewLocation(ast.Location{
 									Start: 69,
 									End:   74,
 								}),
@@ -229,13 +229,13 @@ func TestParsesMultiByteCharacters_Unicode(t *testing.T) {
 							}),
 							Arguments: []*ast.Argument{
 								ast.NewArgument(&ast.Argument{
-									Loc: ast.NewLocation(&ast.Location{
+									Loc: ast.NewLocation(ast.Location{
 										Start: 75,
 										End:   116,
 									}),
 									Name: ast.NewName(&ast.Name{
 
-										Loc: ast.NewLocation(&ast.Location{
+										Loc: ast.NewLocation(ast.Location{
 											Start: 75,
 											End:   78,
 										}),
@@ -243,7 +243,7 @@ func TestParsesMultiByteCharacters_Unicode(t *testing.T) {
 									}),
 									Value: ast.NewStringValue(&ast.StringValue{
 
-										Loc: ast.NewLocation(&ast.Location{
+										Loc: ast.NewLocation(ast.Location{
 											Start: 80,
 											End:   116,
 										}),
@@ -275,30 +275,30 @@ func TestParsesMultiByteCharacters_UnicodeText(t *testing.T) {
 	astDoc := parse(t, doc)
 
 	expectedASTDoc := ast.NewDocument(&ast.Document{
-		Loc: ast.NewLocation(&ast.Location{
+		Loc: ast.NewLocation(ast.Location{
 			Start: 67,
 			End:   121,
 		}),
 		Definitions: []ast.Node{
 			ast.NewOperationDefinition(&ast.OperationDefinition{
-				Loc: ast.NewLocation(&ast.Location{
+				Loc: ast.NewLocation(ast.Location{
 					Start: 67,
 					End:   119,
 				}),
 				Operation: "query",
 				SelectionSet: ast.NewSelectionSet(&ast.SelectionSet{
-					Loc: ast.NewLocation(&ast.Location{
+					Loc: ast.NewLocation(ast.Location{
 						Start: 67,
 						End:   119,
 					}),
 					Selections: []ast.Selection{
 						ast.NewField(&ast.Field{
-							Loc: ast.NewLocation(&ast.Location{
+							Loc: ast.NewLocation(ast.Location{
 								Start: 67,
 								End:   117,
 							}),
 							Name: ast.NewName(&ast.Name{
-								Loc: ast.NewLocation(&ast.Location{
+								Loc: ast.NewLocation(ast.Location{
 									Start: 69,
 									End:   74,
 								}),
@@ -306,13 +306,13 @@ func TestParsesMultiByteCharacters_UnicodeText(t *testing.T) {
 							}),
 							Arguments: []*ast.Argument{
 								ast.NewArgument(&ast.Argument{
-									Loc: ast.NewLocation(&ast.Location{
+									Loc: ast.NewLocation(ast.Location{
 										Start: 75,
 										End:   116,
 									}),
 									Name: ast.NewName(&ast.Name{
 
-										Loc: ast.NewLocation(&ast.Location{
+										Loc: ast.NewLocation(ast.Location{
 											Start: 75,
 											End:   78,
 										}),
@@ -320,7 +320,7 @@ func TestParsesMultiByteCharacters_UnicodeText(t *testing.T) {
 									}),
 									Value: ast.NewStringValue(&ast.StringValue{
 
-										Loc: ast.NewLocation(&ast.Location{
+										Loc: ast.NewLocation(ast.Location{
 											Start: 80,
 											End:   116,
 										}),
@@ -631,25 +631,25 @@ func TestParseCreatesAst(t *testing.T) {
 
 	oDef := ast.OperationDefinition{
 		Kind: "OperationDefinition",
-		Loc: &ast.Location{
+		Loc: ast.Location{
 			Start: 0, End: 40,
 		},
 		Operation:  "query",
 		Directives: nil,
 		SelectionSet: &ast.SelectionSet{
 			Kind: "SelectionSet",
-			Loc: &ast.Location{
+			Loc: ast.Location{
 				Start: 0, End: 40,
 			},
 			Selections: []ast.Selection{
 				&ast.Field{
 					Kind: "Field",
-					Loc: &ast.Location{
+					Loc: ast.Location{
 						Start: 4, End: 38,
 					},
 					Name: &ast.Name{
 						Kind: "Name",
-						Loc: &ast.Location{
+						Loc: ast.Location{
 							Start: 4, End: 8,
 						},
 						Value: "node",
@@ -659,37 +659,37 @@ func TestParseCreatesAst(t *testing.T) {
 							Kind: "Argument",
 							Name: &ast.Name{
 								Kind: "Name",
-								Loc: &ast.Location{
+								Loc: ast.Location{
 									Start: 9, End: 11,
 								},
 								Value: "id",
 							},
 							Value: &ast.IntValue{
 								Kind: "IntValue",
-								Loc: &ast.Location{
+								Loc: ast.Location{
 									Start: 13, End: 14,
 								},
 								Value: "4",
 							},
-							Loc: &ast.Location{
+							Loc: ast.Location{
 								Start: 9, End: 14,
 							},
 						},
 					},
 					SelectionSet: &ast.SelectionSet{
 						Kind: "SelectionSet",
-						Loc: &ast.Location{
+						Loc: ast.Location{
 							Start: 16, End: 38,
 						},
 						Selections: []ast.Selection{
 							&ast.Field{
 								Kind: "Field",
-								Loc: &ast.Location{
+								Loc: ast.Location{
 									Start: 22, End: 24,
 								},
 								Name: &ast.Name{
 									Kind: "Name",
-									Loc: &ast.Location{
+									Loc: ast.Location{
 										Start: 22, End: 24,
 									},
 									Value: "id",
@@ -697,12 +697,12 @@ func TestParseCreatesAst(t *testing.T) {
 							},
 							&ast.Field{
 								Kind: "Field",
-								Loc: &ast.Location{
+								Loc: ast.Location{
 									Start: 30, End: 34,
 								},
 								Name: &ast.Name{
 									Kind: "Name",
-									Loc: &ast.Location{
+									Loc: ast.Location{
 										Start: 30, End: 34,
 									},
 									Value: "name",
@@ -715,7 +715,7 @@ func TestParseCreatesAst(t *testing.T) {
 		},
 	}
 	expectedDocument := ast.NewDocument(&ast.Document{
-		Loc: &ast.Location{
+		Loc: ast.Location{
 			Start: 0, End: 41,
 		},
 		Definitions: []ast.Node{&oDef},
@@ -788,5 +788,34 @@ func toError(err error) *gqlerrors.Error {
 		return err
 	default:
 		return nil
+	}
+}
+
+func BenchmarkKitchenSink(b *testing.B) {
+	data, err := ioutil.ReadFile("../../kitchen-sink.graphql")
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	src := source.NewSource(&source.Source{
+		Name: "bench",
+		Body: data,
+	})
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		document, err := Parse(
+			ParseParams{
+				Source: src,
+				Options: ParseOptions{
+					NoSource: true,
+				},
+			},
+		)
+		if err != nil {
+			b.Fatalf("unexpected error: %v", err)
+		}
+		_ = document
 	}
 }

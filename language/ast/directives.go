@@ -7,7 +7,7 @@ import (
 // Directive implements Node
 type Directive struct {
 	Kind      string
-	Loc       *Location
+	Loc       Location
 	Name      *Name
 	Arguments []*Argument
 }
@@ -29,5 +29,5 @@ func (dir *Directive) GetKind() string {
 }
 
 func (dir *Directive) GetLoc() *Location {
-	return dir.Loc
+	return &dir.Loc
 }

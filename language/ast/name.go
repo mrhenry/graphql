@@ -7,7 +7,7 @@ import (
 // Name implements Node
 type Name struct {
 	Kind  string
-	Loc   *Location
+	Loc   Location
 	Value string
 }
 
@@ -27,5 +27,5 @@ func (node *Name) GetKind() string {
 }
 
 func (node *Name) GetLoc() *Location {
-	return node.Loc
+	return &node.Loc
 }

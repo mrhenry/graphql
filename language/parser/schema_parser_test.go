@@ -24,8 +24,8 @@ func parse(t *testing.T, query string) *ast.Document {
 	return astDoc
 }
 
-func testLoc(start int, end int) *ast.Location {
-	return &ast.Location{
+func testLoc(start int, end int) ast.Location {
+	return ast.Location{
 		Start: start, End: end,
 	}
 }

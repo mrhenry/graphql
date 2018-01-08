@@ -33,50 +33,29 @@ const (
 	BLOCK_STRING
 )
 
-var TokenKind map[int]int
 var tokenDescription map[int]string
 
 func init() {
-	TokenKind = make(map[int]int)
 	tokenDescription = make(map[int]string)
-	TokenKind[EOF] = EOF
-	TokenKind[BANG] = BANG
-	TokenKind[DOLLAR] = DOLLAR
-	TokenKind[PAREN_L] = PAREN_L
-	TokenKind[PAREN_R] = PAREN_R
-	TokenKind[SPREAD] = SPREAD
-	TokenKind[COLON] = COLON
-	TokenKind[EQUALS] = EQUALS
-	TokenKind[AT] = AT
-	TokenKind[BRACKET_L] = BRACKET_L
-	TokenKind[BRACKET_R] = BRACKET_R
-	TokenKind[BRACE_L] = BRACE_L
-	TokenKind[PIPE] = PIPE
-	TokenKind[BRACE_R] = BRACE_R
-	TokenKind[NAME] = NAME
-	TokenKind[INT] = INT
-	TokenKind[FLOAT] = FLOAT
-	TokenKind[STRING] = STRING
-	TokenKind[BLOCK_STRING] = BLOCK_STRING
-	tokenDescription[TokenKind[EOF]] = "EOF"
-	tokenDescription[TokenKind[BANG]] = "!"
-	tokenDescription[TokenKind[DOLLAR]] = "$"
-	tokenDescription[TokenKind[PAREN_L]] = "("
-	tokenDescription[TokenKind[PAREN_R]] = ")"
-	tokenDescription[TokenKind[SPREAD]] = "..."
-	tokenDescription[TokenKind[COLON]] = ":"
-	tokenDescription[TokenKind[EQUALS]] = "="
-	tokenDescription[TokenKind[AT]] = "@"
-	tokenDescription[TokenKind[BRACKET_L]] = "["
-	tokenDescription[TokenKind[BRACKET_R]] = "]"
-	tokenDescription[TokenKind[BRACE_L]] = "{"
-	tokenDescription[TokenKind[PIPE]] = "|"
-	tokenDescription[TokenKind[BRACE_R]] = "}"
-	tokenDescription[TokenKind[NAME]] = "Name"
-	tokenDescription[TokenKind[INT]] = "Int"
-	tokenDescription[TokenKind[FLOAT]] = "Float"
-	tokenDescription[TokenKind[STRING]] = "String"
-	tokenDescription[TokenKind[BLOCK_STRING]] = "BlockString"
+	tokenDescription[EOF] = "EOF"
+	tokenDescription[BANG] = "!"
+	tokenDescription[DOLLAR] = "$"
+	tokenDescription[PAREN_L] = "("
+	tokenDescription[PAREN_R] = ")"
+	tokenDescription[SPREAD] = "..."
+	tokenDescription[COLON] = ":"
+	tokenDescription[EQUALS] = "="
+	tokenDescription[AT] = "@"
+	tokenDescription[BRACKET_L] = "["
+	tokenDescription[BRACKET_R] = "]"
+	tokenDescription[BRACE_L] = "{"
+	tokenDescription[PIPE] = "|"
+	tokenDescription[BRACE_R] = "}"
+	tokenDescription[NAME] = "Name"
+	tokenDescription[INT] = "Int"
+	tokenDescription[FLOAT] = "Float"
+	tokenDescription[STRING] = "String"
+	tokenDescription[BLOCK_STRING] = "BlockString"
 }
 
 // Token is a representation of a lexed Token. Value only appears for non-punctuation
@@ -116,19 +95,23 @@ func readName(source *source.Source, position, runePosition int) Token {
 	endRune := runePosition + 1
 	for {
 		code, _ := runeAt(body, endByte)
-		if (endByte != bodyLength) &&
-			(code == '_' || // _
-				code >= '0' && code <= '9' || // 0-9
-				code >= 'A' && code <= 'Z' || // A-Z
-				code >= 'a' && code <= 'z') { // a-z
+		if endByte >= bodyLength {
+			break
+		}
+
+		if code == '_' || // _
+			code >= '0' && code <= '9' || // 0-9
+			code >= 'A' && code <= 'Z' || // A-Z
+			code >= 'a' && code <= 'z' { // a-z
 			endByte++
 			endRune++
 			continue
-		} else {
-			break
 		}
+
+		break
 	}
-	return makeToken(TokenKind[NAME], runePosition, endRune, string(body[position:endByte]))
+
+	return makeToken(NAME, runePosition, endRune, string(body[position:endByte]))
 }
 
 // Reads a number token from the source file, either a float
@@ -184,9 +167,9 @@ func readNumber(s *source.Source, start int, firstCode rune, codeLength int) (To
 		}
 		position = p
 	}
-	kind := TokenKind[INT]
+	kind := INT
 	if isFloat {
-		kind = TokenKind[FLOAT]
+		kind = FLOAT
 	}
 
 	return makeToken(kind, start, position, string(body[start:position])), nil
@@ -197,21 +180,22 @@ func readDigits(s *source.Source, start int, firstCode rune, codeLength int) (in
 	body := s.Body
 	position := start
 	code := firstCode
-	if code >= '0' && code <= '9' { // 0 - 9
-		for {
-			if code >= '0' && code <= '9' { // 0 - 9
-				position += codeLength
-				code, codeLength = runeAt(body, position)
-				continue
-			} else {
-				break
-			}
-		}
-		return position, nil
+
+	if code < '0' || '9' < code { // 0 - 9
+		var description string
+		description = fmt.Sprintf("Invalid number, expected digit but got: %v.", printCharCode(code))
+		return position, gqlerrors.NewSyntaxError(s, position, description)
 	}
-	var description string
-	description = fmt.Sprintf("Invalid number, expected digit but got: %v.", printCharCode(code))
-	return position, gqlerrors.NewSyntaxError(s, position, description)
+
+	for {
+		if code < '0' || '9' < code { // 0 - 9
+			break
+		}
+		position += codeLength
+		code, codeLength = runeAt(body, position)
+	}
+
+	return position, nil
 }
 
 func readString(s *source.Source, start int) (Token, error) {
@@ -305,7 +289,7 @@ func readString(s *source.Source, start int) (Token, error) {
 	stringContent := body[chunkStart:position]
 	valueBuffer.Write(stringContent)
 	value := valueBuffer.String()
-	return makeToken(TokenKind[STRING], start, position+1, value), nil
+	return makeToken(STRING, start, position+1, value), nil
 }
 
 // readBlockString reads a block string token from the source file.
@@ -334,7 +318,7 @@ func readBlockString(s *source.Source, start int) (Token, error) {
 				stringContent := body[chunkStart:position]
 				valueBuffer.Write(stringContent)
 				value := blockStringValue(valueBuffer.String())
-				return makeToken(TokenKind[BLOCK_STRING], start, position+3, value), nil
+				return makeToken(BLOCK_STRING, start, position+3, value), nil
 			}
 		}
 
@@ -489,7 +473,7 @@ func readToken(s *source.Source, fromPosition int) (Token, error) {
 	bodyLength := len(body)
 	position, runePosition := positionAfterWhitespace(body, fromPosition)
 	if position >= bodyLength {
-		return makeToken(TokenKind[EOF], position, position, ""), nil
+		return makeToken(EOF, position, position, ""), nil
 	}
 	code, codeLength := runeAt(body, position)
 
@@ -501,48 +485,48 @@ func readToken(s *source.Source, fromPosition int) (Token, error) {
 	switch code {
 	// !
 	case '!':
-		return makeToken(TokenKind[BANG], position, position+1, ""), nil
+		return makeToken(BANG, position, position+1, ""), nil
 	// $
 	case '$':
-		return makeToken(TokenKind[DOLLAR], position, position+1, ""), nil
+		return makeToken(DOLLAR, position, position+1, ""), nil
 	// (
 	case '(':
-		return makeToken(TokenKind[PAREN_L], position, position+1, ""), nil
+		return makeToken(PAREN_L, position, position+1, ""), nil
 	// )
 	case ')':
-		return makeToken(TokenKind[PAREN_R], position, position+1, ""), nil
+		return makeToken(PAREN_R, position, position+1, ""), nil
 	// .
 	case '.':
 		next1, _ := runeAt(body, position+1)
 		next2, _ := runeAt(body, position+2)
 		if next1 == '.' && next2 == '.' {
-			return makeToken(TokenKind[SPREAD], position, position+3, ""), nil
+			return makeToken(SPREAD, position, position+3, ""), nil
 		}
 		break
 	// :
 	case ':':
-		return makeToken(TokenKind[COLON], position, position+1, ""), nil
+		return makeToken(COLON, position, position+1, ""), nil
 	// =
 	case '=':
-		return makeToken(TokenKind[EQUALS], position, position+1, ""), nil
+		return makeToken(EQUALS, position, position+1, ""), nil
 	// @
 	case '@':
-		return makeToken(TokenKind[AT], position, position+1, ""), nil
+		return makeToken(AT, position, position+1, ""), nil
 	// [
 	case '[':
-		return makeToken(TokenKind[BRACKET_L], position, position+1, ""), nil
+		return makeToken(BRACKET_L, position, position+1, ""), nil
 	// ]
 	case ']':
-		return makeToken(TokenKind[BRACKET_R], position, position+1, ""), nil
+		return makeToken(BRACKET_R, position, position+1, ""), nil
 	// {
 	case '{':
-		return makeToken(TokenKind[BRACE_L], position, position+1, ""), nil
+		return makeToken(BRACE_L, position, position+1, ""), nil
 	// |
 	case '|':
-		return makeToken(TokenKind[PIPE], position, position+1, ""), nil
+		return makeToken(PIPE, position, position+1, ""), nil
 	// }
 	case '}':
-		return makeToken(TokenKind[BRACE_R], position, position+1, ""), nil
+		return makeToken(BRACE_R, position, position+1, ""), nil
 	// A-Z
 	case 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
 		'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z':
@@ -602,44 +586,47 @@ func positionAfterWhitespace(body []byte, startPosition int) (position int, rune
 	position = startPosition
 	runePosition = startPosition
 	for {
-		if position < bodyLength {
-			code, n := runeAt(body, position)
+		if position >= bodyLength {
+			break
+		}
+		code, n := runeAt(body, position)
 
-			// Skip Ignored
-			if code == 0xFEFF || // BOM
-				// White Space
-				code == 0x0009 || // tab
-				code == 0x0020 || // space
-				// Line Terminator
-				code == 0x000A || // new line
-				code == 0x000D || // carriage return
-				// Comma
-				code == 0x002C {
-				position += n
-				runePosition++
-			} else if code == 35 { // #
-				position += n
-				runePosition++
-				for {
-					code, n := runeAt(body, position)
-					if position < bodyLength &&
-						code != 0 &&
-						// SourceCharacter but not LineTerminator
-						(code > 0x001F || code == 0x0009) && code != 0x000A && code != 0x000D {
-						position += n
-						runePosition++
-						continue
-					} else {
-						break
-					}
+		// Skip Ignored
+		if code == 0xFEFF || // BOM
+			// White Space
+			code == 0x0009 || // tab
+			code == 0x0020 || // space
+			// Line Terminator
+			code == 0x000A || // new line
+			code == 0x000D || // carriage return
+			// Comma
+			code == 0x002C {
+			position += n
+			runePosition++
+			continue
+		}
+
+		if code == 35 { // #
+			position += n
+			runePosition++
+			for {
+				if position >= bodyLength {
+					break
 				}
-			} else {
+
+				code, n := runeAt(body, position)
+				if (code > 0x001F || code == 0x0009) && code != 0x000A && code != 0x000D {
+					position += n
+					runePosition++
+					continue
+				}
+
 				break
 			}
 			continue
-		} else {
-			break
 		}
+
+		break
 	}
 	return position, runePosition
 }

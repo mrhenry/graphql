@@ -7,7 +7,7 @@ import (
 // Argument implements Node
 type Argument struct {
 	Kind  string
-	Loc   *Location
+	Loc   Location
 	Name  *Name
 	Value Value
 }
@@ -29,5 +29,5 @@ func (arg *Argument) GetKind() string {
 }
 
 func (arg *Argument) GetLoc() *Location {
-	return arg.Loc
+	return &arg.Loc
 }
